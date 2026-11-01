@@ -251,6 +251,46 @@
     color: #465575;
     font-size: 13px;
 }
+.teacher-message.success {
+    color: #27724f;
+}
+.teacher-message.error {
+    color: #b33442;
+}
+.teacher-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    min-width: 190px;
+}
+.teacher-row-actions .view-teacher {
+    padding: 6px 8px;
+    border: 1px solid #dce2ed;
+    border-radius: 6px;
+    background: #fff;
+    text-decoration: none;
+    font-size: 11px;
+}
+.teacher-row-actions .view-teacher:hover {
+    border-color: #a99ce9;
+    color: #5548a3;
+}
+.teacher-subject-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.teacher-subject-pill {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 16px;
+    background: #eeeaff;
+    color: #5e50b2;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
 .drawer-backdrop,
 .detail-backdrop {
     position: fixed;
@@ -311,6 +351,8 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
 }
 .drawer-fields {
     padding: 25px 30px;
@@ -334,6 +376,30 @@
     padding: 0 14px;
     font: 14px inherit;
     outline-color: #8171dd;
+}
+.drawer-fields select,
+.drawer-fields textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 8px;
+    border: 1px solid #d5dcea;
+    border-radius: 8px;
+    padding: 11px 14px;
+    background: #fff;
+    color: #17223d;
+    font: inherit;
+    outline-color: #8171dd;
+}
+.drawer-fields select {
+    height: 48px;
+}
+.drawer-fields textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+.drawer-fields .field-wide {
+    grid-column: 1 / -1;
 }
 .drawer-fields label:nth-child(3) {
     grid-column: 1/-1;
@@ -399,6 +465,49 @@
     color: #283652;
     overflow-wrap: anywhere;
 }
+.subject-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 24px 30px;
+    overflow-y: auto;
+}
+.subject-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #dce2ed;
+    border-radius: 8px;
+    color: #34415d;
+    cursor: pointer;
+}
+.subject-option:has(input:checked) {
+    border-color: #a99ce9;
+    background: #f6f3ff;
+}
+.subject-option input {
+    margin-top: 3px;
+    accent-color: #6959b5;
+}
+.subject-option span {
+    display: grid;
+    gap: 4px;
+}
+.subject-option small {
+    color: #7b89a3;
+    font-size: 11px;
+}
+.subject-option input:disabled {
+    cursor: not-allowed;
+}
+.subject-empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 24px;
+    color: #71809c;
+    text-align: center;
+}
 @media(max-width:850px) {
     .teacher-stats {
         grid-template-columns: repeat(2,1fr);
@@ -433,6 +542,9 @@
     .drawer-fields label:nth-child(3) {
         grid-column: auto;
     }
+    .drawer-fields .field-wide {
+        grid-column: auto;
+    }
     .teacher-drawer>header {
         padding: 22px;
     }
@@ -441,5 +553,9 @@
     }
     .invite-note {
         margin: 0 22px;
+    }
+    .subject-options {
+        grid-template-columns: 1fr;
+        padding: 22px;
     }
 }

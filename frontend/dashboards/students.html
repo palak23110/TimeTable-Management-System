@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#18233f">
+    <title>Student Management | BMU TTMS</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/css/teacher-management.css">
+    <link rel="stylesheet" href="/css/teacher-management-overrides.css">
+    <link rel="stylesheet" href="/css/student-management.css">
+    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/students.js" defer></script>
+  </head>
+  <body class="admin-dashboard student-management-page">
+    <div class="admin-shell">
+      <aside class="admin-sidebar" id="admin-sidebar" aria-label="Administrator navigation">
+        <a class="admin-brand" href="/admin/dashboard" aria-label="BMU Timetable System overview">
+          <span class="admin-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg></span>
+          <span><strong>BMU</strong><small>Timetable System</small></span>
+        </a>
+        <div class="workspace-heading"><span>Academic Workspace</span><span class="academic-year">2025–26</span></div>
+        <nav class="admin-nav">
+          <a class="nav-item" href="/admin/dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Overview</span></a>
+          <p class="nav-group-label">Management</p>
+          <a class="nav-item" href="/admin/teachers"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Teachers</span></a>
+          <a class="nav-item active" href="/admin/students" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.8 20c.4-3.6 2.4-5.5 6.2-5.5s5.8 1.9 6.2 5.5M16 5a3.5 3.5 0 0 1 0 6.5M17 14.5c2.5.6 3.9 2.4 4.2 5.5"/></svg><span>Students</span></a>
+          <a class="nav-item" href="/admin/academic-structure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 8 9-5 9 5-9 5-9-5Z"/><path d="M7 11v5c2.8 2.4 7.2 2.4 10 0v-5M21 8v7"/></svg><span>Academic structure</span></a>
+          <button class="nav-item nav-placeholder" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></svg><span>Subjects</span></button>
+          <p class="nav-group-label">Scheduling</p>
+          <button class="nav-item nav-placeholder" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 4V2m10 2V2M3 9h18M8 13h3v4H8zM15 13h2"/></svg><span>Rooms &amp; labs</span></button>
+          <button class="nav-item nav-placeholder" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Manage slots</span></button>
+        </nav>
+        <div class="help-card"><span class="help-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.4 1.6c-1.2 1.1-2 1.3-2 3M12 17h.01"/></svg></span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow" aria-hidden="true">→</span></div>
+        <div class="sidebar-profile"><span class="profile-avatar" data-user-initials>BM</span><span class="profile-copy"><strong data-user-name></strong><small><span data-user-role>Administrator</span><span class="profile-id" data-user-login></span></small></span><button class="sidebar-logout" type="button" data-logout aria-label="Log out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3m9-8h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7"/></svg></button></div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar">
+          <button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <label class="topbar-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Search people, rooms, schedules…" aria-label="Search (not available yet)" disabled><kbd>⌘ K</kbd></label>
+          <div class="topbar-actions"><span class="view-label">Administrator view</span><span class="topbar-divider"></span><span class="topbar-profile"><span class="profile-avatar small" data-user-initials>BM</span><span><strong data-user-name></strong><small data-user-login></small></span></span></div>
+        </header>
+
+        <main class="admin-content teacher-content student-content">
+          <div class="teacher-title student-title"><div><p class="teacher-breadcrumb">TTMS &nbsp;›&nbsp; People · Students</p><h1>Student management</h1><p>Manage student accounts and academic placement details.</p></div><button class="primary-button" type="button" data-open-student>＋ &nbsp;Add student</button></div>
+          <section class="teacher-stats student-stats" aria-label="Student statistics">
+            <article><span>♧</span><div><strong data-stat="total">—</strong><small>Total students</small></div></article>
+            <article><span>✓</span><div><strong data-stat="activeAccounts">—</strong><small>Active accounts</small></div></article>
+            <article><span>◇</span><div><strong data-stat="profilesWithoutAccounts">—</strong><small>Profiles without accounts</small></div></article>
+            <article><span>▤</span><div><strong data-stat="incompletePlacement">—</strong><small>Placement needs review</small></div></article>
+          </section>
+          <section class="teacher-toolbar student-toolbar" aria-label="Student search and filters">
+            <label class="teacher-search">⌕ <input type="search" placeholder="Search by student name or ID…" data-search aria-label="Search students"><kbd>⌘ K</kbd></label>
+            <select data-filter-programme aria-label="Filter by programme"><option value="">All programmes</option></select>
+            <select data-filter-branch aria-label="Filter by branch or major" disabled><option value="">All branches / majors</option></select>
+            <select data-filter-semester aria-label="Filter by semester"><option value="">All semesters</option></select>
+            <select data-filter-section aria-label="Filter by section" disabled><option value="">All sections</option></select>
+            <select data-filter-status aria-label="Filter by status"><option value="">All status</option><option value="active">Active account</option><option value="inactive">Inactive account</option><option value="not_linked">Account not linked</option></select>
+            <button class="filter-reset" type="button" data-clear aria-label="Clear filters" title="Clear filters">☷</button>
+          </section>
+          <section class="teacher-table-wrap">
+            <div class="table-scroll"><table class="teacher-table student-table"><thead><tr><th>Student</th><th>Student ID</th><th>Contact</th><th>Degree / programme</th><th>Semester</th><th>Section</th><th>Status</th><th>Actions</th></tr></thead><tbody data-student-rows><tr><td colspan="8" class="empty-row">Loading student records…</td></tr></tbody></table></div>
+            <footer class="teacher-pagination"><span data-page-summary></span><div><button type="button" data-page-prev aria-label="Previous page">‹</button><span data-page-number>1</span><button type="button" data-page-next aria-label="Next page">›</button></div></footer>
+          </section>
+          <p class="teacher-message" data-message role="status" aria-live="polite"></p>
+        </main>
+      </div>
+    </div>
+    <button class="sidebar-scrim" type="button" data-sidebar-close aria-label="Close navigation"></button>
+
+    <div class="drawer-backdrop" data-student-modal hidden>
+      <section class="teacher-drawer student-drawer" role="dialog" aria-modal="true" aria-labelledby="student-modal-title">
+        <header><div><span class="eyebrow">New record</span><h2 id="student-modal-title">Add new student</h2><p>Enter the required details below. Fields marked * are required.</p></div><button type="button" data-close-student aria-label="Close">×</button></header>
+        <form data-student-form>
+          <div class="drawer-fields student-fields">
+            <label>Student name *<input name="name" maxlength="160" required autocomplete="name" placeholder="Enter full name"></label>
+            <label>Student ID *<input name="studentId" maxlength="32" required placeholder="STU-00000"></label>
+            <label>Email address *<input name="email" type="email" maxlength="254" required autocomplete="email" placeholder="name@bmu.edu"></label>
+            <label>Contact number *<input name="contactNumber" type="tel" maxlength="32" required autocomplete="tel" placeholder="+1 555 0000"></label>
+            <label>Degree / programme *<select name="programmeId" data-form-programme required><option value="">Select programme</option></select></label>
+            <label data-branch-field hidden>Branch / major *<select name="branchOptionId" data-form-branch disabled><option value="">Select branch / major</option></select></label>
+            <label data-specialisation-field hidden>Specialisation (optional)<select name="specialisationOptionId" data-form-specialisation disabled><option value="">No specialisation</option></select></label>
+            <label>Enrolled year *<input name="enrolledYear" data-enrolled-year type="number" min="2000" max="2200" required placeholder="2024"></label>
+            <label>Expected graduation year *<select name="expectedGraduationYear" data-graduation-year required disabled><option value="">Select programme and enrolled year</option></select></label>
+            <label>Current semester<input data-current-semester value="Select enrolment year to calculate" readonly></label>
+            <label>Section *<select name="sectionId" data-form-section required disabled><option value="">Select programme first</option></select></label>
+          </div>
+          <p class="student-calendar-note" data-calendar-note>Semester is calculated from the configured active academic year and term.</p>
+          <p class="invite-note">Student invitations and login credentials are not part of this phase. Existing student accounts are linked by matching email.</p>
+          <p class="form-error" data-student-error role="alert"></p>
+          <footer><button type="button" class="secondary-button" data-close-student>Cancel</button><button class="primary-button" type="submit">✓ &nbsp;Save record</button></footer>
+        </form>
+      </section>
+    </div>
+
+    <div class="detail-backdrop" data-student-detail hidden>
+      <section class="detail-card student-detail-card" role="dialog" aria-modal="true" aria-labelledby="student-detail-title">
+        <button type="button" data-close-student-detail class="detail-close" aria-label="Close">×</button>
+        <span class="eyebrow">Student record</span><h2 id="student-detail-title" data-detail-name></h2><dl data-detail-content></dl>
+      </section>
+    </div>
+  </body>
+</html>

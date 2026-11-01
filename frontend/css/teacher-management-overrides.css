@@ -27,3 +27,83 @@
   margin-left: 8px;
   color: #6959b5;
 }
+
+body.teacher-modal-open,
+body.modal-open {
+  overflow: hidden;
+}
+
+.drawer-backdrop {
+  z-index: 70;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(18, 29, 52, .5);
+  backdrop-filter: blur(2px);
+}
+
+.teacher-drawer {
+  width: min(720px, 100%);
+  height: auto;
+  max-height: min(900px, calc(100dvh - 48px));
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid #e1e6ef;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(16, 28, 52, .24);
+}
+
+.teacher-drawer > header {
+  flex: 0 0 auto;
+  padding: 25px 28px 20px;
+  background: #fff;
+}
+
+.teacher-drawer form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.teacher-drawer form footer {
+  position: sticky;
+  bottom: 0;
+  flex: 0 0 auto;
+}
+
+.subject-drawer {
+  width: min(780px, 100%);
+}
+
+.subject-drawer form {
+  min-height: 0;
+}
+
+.subject-options {
+  overflow: visible;
+}
+
+@media (max-width: 600px) {
+  .drawer-backdrop {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .teacher-drawer {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+    border-radius: 16px 16px 10px 10px;
+  }
+
+  .teacher-drawer > header {
+    padding: 20px 18px 16px;
+  }
+
+  .drawer-fields {
+    padding: 20px 18px;
+  }
+}

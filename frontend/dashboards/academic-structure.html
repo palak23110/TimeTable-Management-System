@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#18233f">
+    <title>Academic Structure | BMU TTMS</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/css/teacher-management.css">
+    <link rel="stylesheet" href="/css/academic-structure.css">
+    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/academic-structure.js" defer></script>
+  </head>
+  <body class="admin-dashboard academic-structure-page">
+    <div class="admin-shell">
+      <aside class="admin-sidebar" id="admin-sidebar" aria-label="Administrator navigation">
+        <a class="admin-brand" href="/admin/dashboard" aria-label="BMU Timetable System overview"><span class="admin-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg></span><span><strong>BMU</strong><small>Timetable System</small></span></a>
+        <div class="workspace-heading"><span>Academic Workspace</span><span class="academic-year">2025–26</span></div>
+        <nav class="admin-nav">
+          <a class="nav-item" href="/admin/dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Overview</span></a>
+          <p class="nav-group-label">Management</p>
+          <a class="nav-item" href="/admin/teachers"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Teachers</span></a>
+          <a class="nav-item" href="/admin/students"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.8 20c.4-3.6 2.4-5.5 6.2-5.5s5.8 1.9 6.2 5.5M16 5a3.5 3.5 0 0 1 0 6.5M17 14.5c2.5.6 3.9 2.4 4.2 5.5"/></svg><span>Students</span></a>
+          <a class="nav-item active" href="/admin/academic-structure" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 8 9-5 9 5-9 5-9-5Z"/><path d="M7 11v5c2.8 2.4 7.2 2.4 10 0v-5M21 8v7"/></svg><span>Academic structure</span></a>
+          <button class="nav-item nav-placeholder" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></svg><span>Subjects</span></button>
+          <p class="nav-group-label">Scheduling</p>
+          <button class="nav-item nav-placeholder" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 4V2m10 2V2M3 9h18M8 13h3v4H8zM15 13h2"/></svg><span>Rooms &amp; labs</span></button>
+        </nav>
+        <div class="help-card"><span class="help-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.4 1.6c-1.2 1.1-2 1.3-2 3M12 17h.01"/></svg></span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow" aria-hidden="true">→</span></div>
+        <div class="sidebar-profile"><span class="profile-avatar" data-user-initials>BM</span><span class="profile-copy"><strong data-user-name></strong><small><span data-user-role>Administrator</span><span class="profile-id" data-user-login></span></small></span><button class="sidebar-logout" type="button" data-logout aria-label="Log out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3m9-8h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7"/></svg></button></div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar"><button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><label class="topbar-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Search academic configuration…" disabled><kbd>⌘ K</kbd></label><div class="topbar-actions"><span class="view-label">Administrator view</span><span class="topbar-divider"></span><span class="topbar-profile"><span class="profile-avatar small" data-user-initials>BM</span><span><strong data-user-name></strong><small data-user-login></small></span></span></div></header>
+        <main class="admin-content teacher-content structure-content">
+          <div class="teacher-title"><div><p class="teacher-breadcrumb">TTMS &nbsp;›&nbsp; Configuration</p><h1>Academic structure</h1><p>Manage programmes, branches, academic calendars, semesters and sections.</p></div><a class="structure-students-link" href="/admin/students">Student management →</a></div>
+          <p class="teacher-message" data-structure-message role="status" aria-live="polite"></p>
+
+          <section class="structure-panel" aria-labelledby="programmes-title"><div class="structure-panel-heading"><div><span class="eyebrow">Degrees and pathways</span><h2 id="programmes-title">Programmes</h2></div></div>
+            <form class="structure-inline-form" data-programme-form><label>Programme name<input name="name" maxlength="180" required placeholder="Programme name"></label><label>Code<input name="code" maxlength="40" required placeholder="CODE"></label><label>Minimum years<input name="minDurationYears" type="number" min="1" max="10" required></label><label>Maximum years<input name="maxDurationYears" type="number" min="1" max="10" required></label><button class="primary-button" type="submit">Add programme</button></form>
+            <div class="structure-list" data-programme-list></div>
+          </section>
+
+          <section class="structure-panel" aria-labelledby="options-title"><div class="structure-panel-heading"><div><span class="eyebrow">Programme-specific choices</span><h2 id="options-title">Branches, majors and specialisations</h2></div></div>
+            <form class="structure-inline-form" data-option-form><label>Programme<select name="programmeId" data-option-programme required></select></label><label>Option type<select name="type" data-option-type required><option value="branch">Branch</option><option value="major">Major</option><option value="specialisation">Specialisation</option></select></label><label data-option-parent-field hidden>Parent branch<select name="parentOptionId" data-option-parent></select></label><label>Option name<input name="name" maxlength="180" required placeholder="Option name"></label><button class="primary-button" type="submit">Add option</button></form>
+            <p class="structure-hint">B.Com (Hons.) majors can be configured here. Specialisations belong to a branch; they are not separate branches.</p>
+            <div class="structure-list" data-option-list></div>
+          </section>
+
+          <section class="structure-panel" aria-labelledby="calendar-title"><div class="structure-panel-heading"><div><span class="eyebrow">Calendar configuration</span><h2 id="calendar-title">Academic years and terms</h2></div><span class="active-calendar" data-active-calendar>No active academic calendar</span></div>
+            <form class="structure-inline-form" data-year-form><label>Academic year start<input name="startYear" type="number" min="2000" max="2200" required placeholder="2027"></label><label class="structure-checkbox"><input name="isActive" type="checkbox"> Activate as current year</label><button class="primary-button" type="submit">Add academic year</button></form>
+            <div class="structure-list" data-year-list></div>
+            <div class="structure-subheading"><h3>Terms</h3><small>Normal academic cycle: July–December is odd; January–June is even.</small></div>
+            <div class="structure-list" data-term-list></div>
+          </section>
+
+          <section class="structure-panel" aria-labelledby="semesters-title"><div class="structure-panel-heading"><div><span class="eyebrow">Course progression</span><h2 id="semesters-title">Semester levels</h2></div></div>
+            <form class="structure-inline-form" data-semester-form><label>Semester number<input name="semesterNumber" type="number" min="1" max="10" required></label><label>Label<input name="label" maxlength="40" placeholder="Semester 1"></label><button class="primary-button" type="submit">Add semester</button></form>
+            <div class="structure-list" data-semester-list></div>
+          </section>
+
+          <section class="structure-panel" aria-labelledby="sections-title"><div class="structure-panel-heading"><div><span class="eyebrow">Student grouping</span><h2 id="sections-title">Sections</h2></div></div>
+            <form class="structure-inline-form" data-section-form><label>Programme<select name="programmeId" data-section-programme required></select></label><label>Branch / major (optional)<select name="branchOptionId" data-section-branch disabled></select></label><label>Section name<input name="name" maxlength="40" required placeholder="Section label"></label><button class="primary-button" type="submit">Add section</button></form>
+            <div class="structure-list" data-section-list></div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <button class="sidebar-scrim" type="button" data-sidebar-close aria-label="Close navigation"></button>
+  </body>
+</html>

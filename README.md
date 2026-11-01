@@ -1,6 +1,6 @@
 # BMU TTMS authentication foundation
 
-This project contains the BMU authentication flows, role-protected dashboard placeholders, and administrator-only teacher account management. The UI uses HTML, CSS, and browser-native JavaScript with an Express/MySQL backend. Password hashing uses `bcrypt`; sessions use `express-session` stored in MySQL; password reset and teacher invitation email use Nodemailer.
+This project contains the BMU authentication flows, role-protected dashboards, administrator-only teacher management, and administrator-only student and academic-structure management. The UI uses HTML, CSS, and browser-native JavaScript with an Express/MySQL backend. Password hashing uses `bcrypt`; sessions use `express-session` stored in MySQL; password reset and teacher invitation email use Nodemailer.
 
 ## Requirements
 
@@ -68,6 +68,28 @@ Run the role/login checks after seeding with `npm run test:auth-roles`. It verif
 
 Run `npm run test:teachers` to verify administrator access, input and duplicate validation, database-backed teacher lists and subject filters, bcrypt-12 temporary credentials, first-login password change, and login with the replacement password. The test uses a temporary email and mocks Nodemailer; it sends no email and cleans up its database records.
 
+## Student management and academic structure
+
+For an existing database, run the additive student migration after the teacher migration:
+
+```bash
+npm run db:migrate-students
+```
+
+It creates academic programme, option, year, term, semester, section, and student-profile tables; seeds the configurable undergraduate programme catalogue and the requested B.Tech CSE (CSE1–CSE8) and BBA (BBA1–BBA5) sections; and adds profile rows for existing student users without changing their credentials or roles. The migration is safe to rerun. For a fresh database, `database/schema.sql` includes these tables; seed the administrator and run the migration to load the initial academic configuration.
+
+Student records created through this phase are academic profiles. This phase does not create student login accounts, passwords, or invitation emails. If an existing active student user has the same email address, the profile can link to that account; otherwise the profile remains unlinked until account provisioning is implemented separately.
+
+The active academic year and term drive the current-semester calculation. The academic-structure page lets administrators configure programmes, branches/majors, specialisations, academic years/terms, semesters, and sections. Do not activate a future academic year or term until it should define the current student semester.
+
+Run the student and academic-structure integration checks against the configured development database with:
+
+```bash
+npm run test:students
+```
+
+This test logs in through the real Express session and exercises the MySQL-backed creation, duplicate validation, list/search, placement update, semester calculation, academic-structure changes, and administrator-only routes. Temporary test rows are cleaned up afterward.
+
 ## Verify the password-reset flow
 
 With the schema installed and `.env` pointing to a test database, run:
@@ -81,12 +103,15 @@ This integration check creates a uniquely named temporary test user, exercises t
 ## Routes
 
 - `/login`, `/forgot-password`, `/reset-password`
-- `/admin/dashboard`, `/admin/teachers`, `/teacher/dashboard`, `/student/dashboard`, `/change-password`
+- `/admin/dashboard`, `/admin/teachers`, `/admin/students`, `/admin/academic-structure`, `/teacher/dashboard`, `/teacher/profile`, `/student/dashboard`, `/change-password`
 - `POST /api/auth/login`, `POST /api/auth/logout`, `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
 - `GET /api/auth/me` returns the authenticated user's display name and verified role
 - `/api/admin/teachers` provides protected listing, statistics, subject lookup, profile lookup, creation, and invitation resend APIs
+- `/api/admin/students` provides administrator-only student profile listing, statistics, lookup, creation, and update APIs
+- `/api/admin/academic-structure` provides administrator-only programme, option, academic year/term, semester, and section configuration APIs
+- `GET` and `PATCH /api/teacher/profile` read and update only the signed-in teacher's permitted profile fields
 
-Dashboard and teacher-management HTML/API routes validate sessions and roles on the server. Teacher and student accounts are redirected away from administrator pages. Teachers created by the teacher form must replace their temporary password on first login. Student management and timetable features are intentionally not included.
+Dashboard and management HTML/API routes validate sessions and roles on the server. Teacher and student accounts are redirected away from administrator pages. Teachers created by the teacher form must replace their temporary password on first login. Student login/account provisioning and timetable modules remain out of scope.
 
 ## Security and configuration notes
 
@@ -106,6 +131,14 @@ npm run db:migrate-teachers
 ```
 
 It adds `users.must_change_password`, `teacher_profiles`, `subjects`, and `teacher_subjects`, and creates empty profile rows for existing teachers. No sample people, subjects, or timetable records are inserted. The migration widens `users.login_id` to 254 characters so email addresses can be used as teacher login IDs.
+
+Teacher profile edit history uses additive `updated_by_user_id` and `updated_by_role` columns on `teacher_profiles` (the table already tracks `updated_at`). Apply this safe, repeatable migration to an existing database before using admin or teacher profile saves:
+
+```bash
+npm run db:migrate-teacher-profile-audit
+```
+
+It does not recreate tables or alter teacher records. Each successful administrator or self-profile save updates the timestamp and records the editor's user ID and role.
 
 Administrators create teachers with a name, email, and contact number. The server derives the Teacher ID from the account ID, uses the email as login ID, and stores a bcrypt hash (12 rounds) for the temporary password. It uses the first four email characters followed by four cryptographically random digits; shorter addresses are padded. Nodemailer sends credentials when configured. Teachers must replace the temporary password with a different password of at least 8 characters before using their dashboard. If email delivery fails, the account remains in the database and the administrator sees a delivery-failed status. The administrator can use the row's **Resend invitation** action to generate a fresh temporary password and retry delivery. Temporary passwords are never returned by the API or logged.
 

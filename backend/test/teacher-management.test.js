@@ -34,9 +34,12 @@ test('administrator teacher flow covers account creation, invitation, resend and
   let teacherCookie;
   let createdId;
   let subjectId;
+  let secondSubjectId;
+  let studentCookie;
   let shouldFailDelivery = false;
   const deliveredPasswords = [];
   const email = `tc-teacher-${Date.now()}@example.invalid`;
+  const teacherId = `TCH-${String(Date.now()).slice(-8)}`;
 
   app.locals.sendTeacherInvitationEmail = async (invitation) => {
     assert.equal(invitation.email, email);
@@ -70,14 +73,47 @@ test('administrator teacher flow covers account creation, invitation, resend and
 
     const invalid = await post('/api/admin/teachers', {
       name: '',
+      teacherId: '',
       email: 'invalid',
       contactNumber: 'abc',
     }, adminCookie);
     assert.equal(invalid.status, 400, 'required fields are validated');
 
+    const missingTeacherId = await post('/api/admin/teachers', {
+      name: 'Missing ID Teacher',
+      email: `missing-id-${Date.now()}@example.invalid`,
+      contactNumber: '+1 555 010 1111',
+    }, adminCookie);
+    assert.equal(missingTeacherId.status, 400, 'Teacher ID is required');
+
+    for (const [index, fields] of [
+      { name: '', teacherId: `TCH-BLANK-${Date.now()}`, email: `blank-name-${Date.now()}@example.invalid` },
+      { name: 'Missing Email Teacher', teacherId: `TCH-MAIL-${Date.now()}`, email: '' },
+    ].entries()) {
+      const response = await post('/api/admin/teachers', {
+        ...fields,
+        contactNumber: '+1 555 010 1111',
+      }, adminCookie);
+      assert.equal(response.status, 400, `blank required field case ${index + 1} is rejected`);
+    }
+
+    const invalidEmail = await post('/api/admin/teachers', {
+      name: 'Invalid Email Teacher',
+      teacherId: `TCH-BAD-${String(Date.now()).slice(-4)}`,
+      email: 'not-an-email',
+      contactNumber: '+1 555 010 1111',
+    }, adminCookie);
+    assert.equal(invalidEmail.status, 400, 'invalid email format is rejected');
+    const [invalidEmailCount] = await pool.execute(
+      'SELECT COUNT(*) AS count FROM users WHERE email = ?',
+      ['not-an-email'],
+    );
+    assert.equal(Number(invalidEmailCount[0].count), 0, 'invalid email does not create an account');
+
     shouldFailDelivery = true;
     const createResponse = await post('/api/admin/teachers', {
       name: 'TC Test Teacher',
+      teacherId,
       email,
       contactNumber: '+1 555 010 1234',
     }, adminCookie);
@@ -132,24 +168,129 @@ test('administrator teacher flow covers account creation, invitation, resend and
       FROM teacher_profiles
       WHERE user_id = ?
     `, [createdId]);
-    assert.match(profiles[0].teacherId, /^TCH-\d+$/);
+    assert.equal(profiles[0].teacherId, teacherId);
     assert.equal(profiles[0].contactNumber, '+1 555 010 1234');
     assert.equal(profiles[0].department, null);
     assert.equal(profiles[0].designation, null);
     assert.equal(profiles[0].qualification, null);
+
+    const partialEdit = await fetch(`${base}/api/admin/teachers/${createdId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({
+        name: 'TC Updated Teacher',
+        contactNumber: '+1 555 010 5678',
+        department: 'Computer Science',
+        highestQualification: 'MSc',
+      }),
+      redirect: 'manual',
+    });
+    assert.equal(partialEdit.status, 200, await partialEdit.clone().text());
+    const edited = await partialEdit.json();
+    assert.equal(edited.teacher.name, 'TC Updated Teacher');
+    assert.equal(edited.teacher.contactNumber, '+1 555 010 5678');
+    assert.equal(edited.teacher.department, 'Computer Science');
+
+    const duplicateTeacherId = await fetch(`${base}/api/admin/teachers/${createdId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ teacherId: 'TCH-0002' }),
+      redirect: 'manual',
+    });
+    assert.equal(duplicateTeacherId.status, 409, 'duplicate Teacher ID update is rejected');
+
+    const partialProfileEdit = await fetch(`${base}/api/admin/teachers/${createdId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ professionalSummary: 'Experienced systems educator.' }),
+      redirect: 'manual',
+    });
+    assert.equal(partialProfileEdit.status, 200);
+    const adminProfileSave = await partialProfileEdit.json();
+    assert.equal(adminProfileSave.teacher.updatedByRole, 'administrator');
+    assert.ok(adminProfileSave.teacher.updatedByUserId);
+    assert.ok(adminProfileSave.teacher.updatedAt);
+
+    const persistedTeacher = await (await get(
+      `/api/admin/teachers/${createdId}`,
+      adminCookie,
+    )).json();
+    assert.equal(persistedTeacher.teacher.name, 'TC Updated Teacher');
+    assert.equal(persistedTeacher.teacher.contact_number, '+1 555 010 5678');
+    assert.equal(persistedTeacher.teacher.department, 'Computer Science', 'partial update preserves omitted profile fields');
+    assert.equal(persistedTeacher.teacher.highest_qualification, 'MSc');
+    assert.equal(persistedTeacher.teacher.professional_summary, 'Experienced systems educator.');
+
+    const duplicateEmailUpdate = await fetch(`${base}/api/admin/teachers/${createdId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ email: (await pool.execute(
+        'SELECT email FROM users WHERE login_id = ?',
+        ['admin'],
+      ))[0][0].email }),
+      redirect: 'manual',
+    });
+    assert.equal(duplicateEmailUpdate.status, 409, 'duplicate email update is rejected');
+
+    const deactivate = await fetch(`${base}/api/admin/teachers/${createdId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ status: 'inactive' }),
+      redirect: 'manual',
+    });
+    assert.equal(deactivate.status, 200);
+    assert.equal(Number((await deactivate.json()).teacher.isActive), 0);
+    const reactivate = await fetch(`${base}/api/admin/teachers/${createdId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ status: 'active' }),
+      redirect: 'manual',
+    });
+    assert.equal(reactivate.status, 200);
 
     const [subjectInsert] = await pool.execute(
       'INSERT INTO subjects (subject_name, is_active) VALUES (?, TRUE)',
       [`TC Subject ${Date.now()}`],
     );
     subjectId = subjectInsert.insertId;
-    await pool.execute(
-      'INSERT INTO teacher_subjects (teacher_user_id, subject_id) VALUES (?, ?)',
-      [createdId, subjectId],
+    const [secondSubjectInsert] = await pool.execute(
+      'INSERT INTO subjects (subject_name, is_active) VALUES (?, TRUE)',
+      [`TC Second Subject ${Date.now()}`],
     );
+    secondSubjectId = secondSubjectInsert.insertId;
+
+    const firstAssignment = await fetch(`${base}/api/admin/teachers/${createdId}/subjects`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ subjectIds: [subjectId, secondSubjectId] }),
+      redirect: 'manual',
+    });
+    assert.equal(firstAssignment.status, 200, await firstAssignment.clone().text());
+    assert.equal((await firstAssignment.json()).subjects.length, 2);
+
+    const assignedSubjects = await (await get(
+      `/api/admin/teachers/${createdId}/subjects`,
+      adminCookie,
+    )).json();
+    assert.equal(assignedSubjects.subjects.length, 2, 'multiple subjects persist for the teacher');
+
+    const updatedAssignment = await fetch(`${base}/api/admin/teachers/${createdId}/subjects`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ subjectIds: [secondSubjectId] }),
+      redirect: 'manual',
+    });
+    assert.equal(updatedAssignment.status, 200);
+    assert.equal((await updatedAssignment.json()).subjects.length, 1);
+
+    const removedSubjects = await (await get(
+      `/api/admin/teachers/${createdId}/subjects`,
+      adminCookie,
+    )).json();
+    assert.deepEqual(removedSubjects.subjects.map((item) => Number(item.id)), [Number(secondSubjectId)]);
 
     const filtered = await (await get(
-      `/api/admin/teachers?subject=${subjectId}`,
+      `/api/admin/teachers?subject=${secondSubjectId}`,
       adminCookie,
     )).json();
     assert.equal(filtered.total, 1, 'subject filter finds an assigned teacher');
@@ -157,6 +298,7 @@ test('administrator teacher flow covers account creation, invitation, resend and
 
     const duplicate = await post('/api/admin/teachers', {
       name: 'Duplicate',
+      teacherId: `TCH-DUP-${String(Date.now()).slice(-4)}`,
       email,
       contactNumber: '+1 555 010 1234',
     }, adminCookie);
@@ -279,10 +421,88 @@ test('administrator teacher flow covers account creation, invitation, resend and
       identifier: email,
       password: currentTemporaryPassword,
     })).status, 401);
+
+    const teacherProfilePage = await get('/teacher/profile', teacherCookie);
+    assert.equal(teacherProfilePage.status, 200);
+    assert.match(await teacherProfilePage.text(), /My profile/);
+    const teacherDashboard = await get('/teacher/dashboard', teacherCookie);
+    assert.equal(teacherDashboard.status, 200);
+    const teacherDashboardHtml = await teacherDashboard.text();
+    assert.match(teacherDashboardHtml, /data-greeting/);
+    assert.match(teacherDashboardHtml, /Assigned subjects/);
+    assert.match(teacherDashboardHtml, /Timetable entries are not available yet/);
+    assert.match(teacherDashboardHtml, /href="\/teacher\/profile"/);
+    const teacherProfileResponse = await get('/api/teacher/profile', teacherCookie);
+    assert.equal(teacherProfileResponse.status, 200);
+    const teacherProfile = (await teacherProfileResponse.json()).profile;
+    assert.equal(teacherProfile.name, 'TC Updated Teacher');
+    assert.equal(teacherProfile.department, 'Computer Science');
+    assert.equal(teacherProfile.professionalSummary, 'Experienced systems educator.');
+
+    const teacherProfileSave = await fetch(`${base}/api/teacher/profile`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: teacherCookie },
+      body: JSON.stringify({ contactNumber: '+1 555 010 9876', department: 'Information Systems' }),
+      redirect: 'manual',
+    });
+    assert.equal(teacherProfileSave.status, 200, await teacherProfileSave.clone().text());
+    const teacherProfileSaved = (await teacherProfileSave.json()).profile;
+    assert.equal(teacherProfileSaved.contactNumber, '+1 555 010 9876');
+    assert.equal(teacherProfileSaved.department, 'Information Systems');
+    assert.equal(teacherProfileSaved.updatedByRole, 'teacher');
+    assert.equal(Number(teacherProfileSaved.updatedByUserId), Number(createdId));
+    assert.ok(teacherProfileSaved.updatedAt);
+
+    for (const protectedField of [
+      { teacherId: 'TCH-CHANGED' },
+      { email: 'new-login@example.invalid' },
+      { role: 'administrator' },
+      { status: 'inactive' },
+    ]) {
+      const protectedUpdate = await fetch(`${base}/api/teacher/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Cookie: teacherCookie },
+        body: JSON.stringify(protectedField),
+        redirect: 'manual',
+      });
+      assert.equal(protectedUpdate.status, 400, 'teacher cannot change administrator-controlled account fields');
+    }
+
+    const adminSeesTeacherEdit = await (await get(`/api/admin/teachers/${createdId}`, adminCookie)).json();
+    assert.equal(adminSeesTeacherEdit.teacher.department, 'Information Systems');
+    assert.equal(adminSeesTeacherEdit.teacher.updated_by_role, 'teacher');
+
+    const studentLogin = await post('/api/auth/login', {
+      identifier: 'Student',
+      password: 'student123',
+    });
+    assert.equal(studentLogin.status, 200);
+    studentCookie = studentLogin.headers.get('set-cookie')?.split(';')[0];
+    assert.equal((await get('/api/teacher/profile', studentCookie)).status, 403);
+    assert.equal((await get('/api/teacher/profile', adminCookie)).status, 403);
+
+    for (const [role, cookie] of [['teacher', teacherCookie], ['student', studentCookie]]) {
+      const forbiddenEdit = await fetch(`${base}/api/admin/teachers/${createdId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        body: JSON.stringify({ name: 'Unauthorized Edit' }),
+        redirect: 'manual',
+      });
+      assert.equal(forbiddenEdit.status, 302, `${role} role cannot edit teacher records`);
+
+      const forbiddenAssignments = await fetch(`${base}/api/admin/teachers/${createdId}/subjects`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        body: JSON.stringify({ subjectIds: [] }),
+        redirect: 'manual',
+      });
+      assert.equal(forbiddenAssignments.status, 302, `${role} role cannot update subject assignments`);
+    }
   } finally {
     app.locals.sendTeacherInvitationEmail = originalMailer;
     if (createdId) await pool.execute('DELETE FROM users WHERE id = ?', [createdId]);
     if (subjectId) await pool.execute('DELETE FROM subjects WHERE id = ?', [subjectId]);
+    if (secondSubjectId) await pool.execute('DELETE FROM subjects WHERE id = ?', [secondSubjectId]);
     await new Promise((resolve) => server.close(resolve));
     await pool.end();
   }

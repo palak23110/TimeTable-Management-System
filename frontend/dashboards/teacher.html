@@ -1,1 +1,82 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Teacher dashboard | BMU TTMS</title><link rel="stylesheet" href="/css/styles.css"><script src="/js/dashboard.js" defer></script></head><body class="dashboard-page"><header class="dashboard-header"><div class="dashboard-brand">BMU<small>Timetable Management System</small></div><button class="logout-button" type="button" data-logout>Log out</button></header><main class="dashboard-main"><span class="role-badge" data-user-role>Teacher</span><h1>Welcome, <span data-user-name>…</span></h1><p>You’re signed in to your BMU TTMS workspace.</p><section class="welcome-card"><p>This is your protected teacher landing page. Authentication and role checks are active.</p></section><p class="dashboard-error" data-dashboard-error aria-live="polite"></p></main></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#18233f">
+    <title>Teacher Overview | BMU TTMS</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/css/teacher-portal.css">
+    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/teacher-dashboard.js" defer></script>
+  </head>
+  <body class="admin-dashboard teacher-portal">
+    <div class="admin-shell">
+      <aside class="admin-sidebar" id="admin-sidebar" aria-label="Teacher navigation">
+        <a class="admin-brand" href="/teacher/dashboard" aria-label="BMU Timetable System overview">
+          <span class="admin-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg></span>
+          <span><strong>BMU</strong><small>Timetable System</small></span>
+        </a>
+
+        <div class="workspace-heading"><span>Academic Workspace</span><span class="academic-year">2025–26</span></div>
+        <nav class="admin-nav">
+          <a class="nav-item active" href="/teacher/dashboard" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Overview</span></a>
+          <a class="nav-item" href="/teacher/profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>My profile</span></a>
+          <a class="nav-item teacher-nav-placeholder" href="#subjects" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></svg><span>Subjects</span></a>
+          <a class="nav-item teacher-nav-placeholder" href="#timetable" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 4V2m10 2V2M3 9h18M8 13h3v4H8zM15 13h2"/></svg><span>Timetables</span></a>
+          <button class="nav-item nav-placeholder teacher-nav-placeholder" type="button" disabled title="Available in a future phase"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.4-3"/></svg><span>Rescheduling</span></button>
+          <p class="nav-group-label">Workspace</p>
+          <a class="nav-item teacher-nav-placeholder" href="#notifications" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span><span class="teacher-nav-dot" aria-hidden="true"></span></a>
+        </nav>
+
+        <div class="help-card"><span class="help-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.4 1.6c-1.2 1.1-2 1.3-2 3M12 17h.01"/></svg></span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow" aria-hidden="true">→</span></div>
+
+        <div class="sidebar-profile">
+          <span class="profile-avatar" data-user-initials>—</span>
+          <span class="profile-copy"><strong data-user-name>Loading profile…</strong><small><span data-user-role>Teacher</span><span class="profile-id" data-user-login></span></small></span>
+          <button class="sidebar-logout" type="button" data-logout aria-label="Log out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3m9-8h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7"/></svg></button>
+        </div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar">
+          <button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <label class="topbar-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Search people, rooms, schedules…" aria-label="Search (not available yet)" disabled><kbd>⌘ K</kbd></label>
+          <div class="topbar-actions"><span class="view-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>Teacher view</span><span class="topbar-icon" aria-hidden="true">?</span><span class="topbar-icon teacher-bell" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></svg></span><span class="topbar-divider"></span><span class="topbar-profile"><span class="profile-avatar small" data-user-initials>—</span><span><strong data-user-name>Loading profile…</strong><small data-teacher-id>Teacher ID unavailable</small></span></span></div>
+        </header>
+
+        <main class="admin-content teacher-content">
+          <div class="page-heading"><div><h1 data-greeting>Good morning</h1><p>Here's your teaching schedule and academic overview for today.</p></div></div>
+
+          <section class="teacher-profile-banner" aria-label="Teacher profile summary">
+            <span class="teacher-profile-avatar" data-profile-initials>—</span>
+            <div class="teacher-profile-copy"><span class="eyebrow">Teacher profile</span><strong data-profile-name>Loading profile…</strong><small><span data-profile-teacher-id>Teacher ID unavailable</span><span aria-hidden="true"> · </span><span data-profile-department>Department not provided</span></small></div>
+            <a class="teacher-view-profile" href="/teacher/profile">View profile</a>
+          </section>
+
+          <div class="teacher-overview-grid">
+            <section class="teacher-panel teacher-classes" aria-labelledby="classes-title">
+              <div class="teacher-panel-heading"><div><span class="eyebrow" data-today-label>Today</span><h2 id="classes-title">Your classes</h2></div><span class="teacher-count" data-class-count>Schedule unavailable</span></div>
+              <div class="teacher-empty-state"><span class="teacher-empty-icon" aria-hidden="true">▦</span><p>Timetable entries are not available yet.</p><small>Your scheduled classes will appear here when timetable data is connected.</small></div>
+            </section>
+            <section class="teacher-panel teacher-subjects" id="subjects" aria-labelledby="subjects-title">
+              <div class="teacher-panel-heading"><div><span class="eyebrow">At a glance</span><h2 id="subjects-title">Assigned subjects</h2></div></div>
+              <div class="teacher-subject-list" data-subject-list><p class="teacher-empty-state compact">Loading assigned subjects…</p></div>
+            </section>
+            <section class="teacher-panel teacher-placeholder-panel" id="timetable" aria-labelledby="timetable-title">
+              <div class="teacher-panel-heading"><div><span class="eyebrow">Schedule</span><h2 id="timetable-title">Timetable preview</h2></div></div>
+              <div class="teacher-empty-state compact"><p>Timetable preview is not available yet.</p><small>No timetable data is connected.</small></div>
+            </section>
+            <section class="teacher-panel teacher-placeholder-panel" id="notifications" aria-labelledby="notifications-title">
+              <div class="teacher-panel-heading"><div><span class="eyebrow">Updates</span><h2 id="notifications-title">Recent notifications</h2></div></div>
+              <div class="teacher-empty-state compact"><p>No notifications to show.</p><small>Notifications will appear here when available.</small></div>
+            </section>
+          </div>
+          <p class="dashboard-error" data-dashboard-error aria-live="polite"></p>
+        </main>
+      </div>
+    </div>
+    <button class="sidebar-scrim" type="button" data-sidebar-close aria-label="Close navigation"></button>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#18233f">
+    <title>My profile | BMU TTMS</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/css/teacher-portal.css">
+    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/teacher-profile.js" defer></script>
+  </head>
+  <body class="admin-dashboard teacher-portal">
+    <div class="admin-shell">
+      <aside class="admin-sidebar" id="admin-sidebar" aria-label="Teacher navigation">
+        <a class="admin-brand" href="/teacher/dashboard" aria-label="BMU Timetable System overview">
+          <span class="admin-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg></span>
+          <span><strong>BMU</strong><small>Timetable System</small></span>
+        </a>
+        <div class="workspace-heading"><span>Academic Workspace</span><span class="academic-year">2025–26</span></div>
+        <nav class="admin-nav">
+          <a class="nav-item" href="/teacher/dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Overview</span></a>
+          <a class="nav-item active" href="/teacher/profile" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>My profile</span></a>
+        </nav>
+        <div class="help-card"><span class="help-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.4 1.6c-1.2 1.1-2 1.3-2 3M12 17h.01"/></svg></span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow" aria-hidden="true">→</span></div>
+        <div class="sidebar-profile"><span class="profile-avatar" data-user-initials>—</span><span class="profile-copy"><strong data-user-name>Loading profile…</strong><small><span data-user-role>Teacher</span><span class="profile-id" data-user-login></span></small></span><button class="sidebar-logout" type="button" data-logout aria-label="Log out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3m9-8h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7"/></svg></button></div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar">
+          <button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <div class="teacher-breadcrumb">TTMS <span>›</span> Account</div>
+          <div class="topbar-actions"><span class="view-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>Teacher view</span><span class="topbar-divider"></span><span class="topbar-profile"><span class="profile-avatar small" data-user-initials>—</span><span><strong data-user-name>Loading profile…</strong><small data-profile-id-top>Teacher ID unavailable</small></span></span></div>
+        </header>
+
+        <main class="admin-content teacher-content profile-content">
+          <div class="page-heading"><div><h1>My profile</h1><p>Review your account details and update permitted personal information.</p></div></div>
+          <p class="profile-message" data-profile-message role="status" aria-live="polite"></p>
+          <div class="teacher-profile-layout">
+            <section class="teacher-panel profile-summary-card" aria-label="Account summary">
+              <div class="profile-summary-main"><span class="profile-large-avatar" data-profile-initials>—</span><span class="profile-edit-badge" aria-hidden="true">✎</span><strong data-profile-name>Loading profile…</strong><small>Teacher</small><span class="account-status" data-account-status>Loading status…</span></div>
+              <div class="profile-summary-lines">
+                <div><span aria-hidden="true">✉</span><span data-profile-email>Loading…</span></div>
+                <div><span aria-hidden="true">◇</span><span data-profile-teacher-id>Loading…</span></div>
+                <div><span aria-hidden="true">◷</span><span data-profile-updated>Profile update time unavailable</span></div>
+              </div>
+            </section>
+
+            <section class="teacher-panel profile-details-card" aria-labelledby="profile-details-title">
+              <div class="teacher-panel-heading profile-details-heading"><div><span class="eyebrow">Personal information</span><h2 id="profile-details-title">Profile details</h2></div><button class="secondary-button profile-edit-button" type="button" data-edit-profile><span aria-hidden="true">✎</span> Edit profile</button></div>
+              <form data-profile-form>
+                <div class="profile-fields">
+                  <label>Full name<input name="name" data-profile-field="name" maxlength="160" required readonly></label>
+                  <label>User ID<input data-profile-value="teacherId" readonly aria-readonly="true"></label>
+                  <label>Email address<input data-profile-value="email" type="email" readonly aria-readonly="true"></label>
+                  <label>Contact number<input name="contactNumber" data-profile-field="contactNumber" type="tel" maxlength="32" readonly></label>
+                  <label>Department<input name="department" data-profile-field="department" maxlength="160" readonly></label>
+                  <label>Designation<input name="designation" data-profile-field="designation" maxlength="160" readonly></label>
+                  <label>Highest qualification<input name="highestQualification" data-profile-field="highestQualification" maxlength="180" readonly></label>
+                  <label>University / Institution<input name="universityInstitution" data-profile-field="universityInstitution" maxlength="180" readonly></label>
+                  <label>Specialization<input name="specialization" data-profile-field="specialization" maxlength="180" readonly></label>
+                  <label>Experience (years)<input name="yearsOfExperience" data-profile-field="yearsOfExperience" type="number" min="0" max="999.99" step="0.01" readonly></label>
+                  <label>Previous employer<input name="previousEmployer" data-profile-field="previousEmployer" maxlength="180" readonly></label>
+                  <label>Previous job role<input name="previousJobRole" data-profile-field="previousJobRole" maxlength="160" readonly></label>
+                  <label class="field-wide">Responsibilities<textarea name="responsibilities" data-profile-field="responsibilities" rows="3" maxlength="10000" readonly></textarea></label>
+                  <label class="field-wide">Skills / areas of expertise<textarea name="skills" data-profile-field="skills" rows="3" maxlength="10000" readonly></textarea></label>
+                  <label class="field-wide">Professional summary<textarea name="professionalSummary" data-profile-field="professionalSummary" rows="4" maxlength="10000" readonly></textarea></label>
+                  <label>Role<input data-profile-value="role" readonly aria-readonly="true"></label>
+                  <label>Account status<input data-profile-value="status" readonly aria-readonly="true"></label>
+                </div>
+                <div class="profile-permissions-note"><span aria-hidden="true">▣</span><span>Email, Teacher ID, role and account status are administrator-controlled. Contact an administrator to update these account details.</span></div>
+                <div class="profile-form-actions" data-profile-actions hidden>
+                  <button class="secondary-button" type="button" data-cancel-profile>Cancel</button>
+                  <button class="primary-button" type="submit" data-save-profile>Save changes</button>
+                </div>
+              </form>
+            </section>
+          </div>
+          <p class="dashboard-error" data-dashboard-error aria-live="polite"></p>
+        </main>
+      </div>
+    </div>
+    <button class="sidebar-scrim" type="button" data-sidebar-close aria-label="Close navigation"></button>
+  </body>
+</html>

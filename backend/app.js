@@ -8,6 +8,9 @@ const requireRole = require('./middleware/require-role');
 const authRoutes = require('./routes/auth');
 const { sendPasswordResetEmail, sendTeacherInvitationEmail } = require('./services/mail');
 const teacherRoutes = require('./routes/teachers');
+const teacherProfileRoutes = require('./routes/teacher-profile');
+const studentsRoutes = require('./routes/students');
+const academicStructureRoutes = require('./routes/academic-structure');
 
 const app = express();
 const frontend = path.resolve(__dirname, '../frontend');
@@ -53,7 +56,32 @@ app.get('/admin/teachers', requireAuth, requireRole('administrator'), (req, res)
   res.sendFile(path.join(frontend, 'dashboards', 'teachers.html'));
 });
 app.use('/api/admin/teachers', requireAuth, requireRole('administrator'), teacherRoutes);
-app.get('/teacher/dashboard', requireAuth, requireRole('teacher'), dashboard('teacher.html'));
+app.get('/admin/students', requireAuth, requireRole('administrator'), (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(frontend, 'dashboards', 'students.html'));
+});
+app.get('/admin/academic-structure', requireAuth, requireRole('administrator'), (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(frontend, 'dashboards', 'academic-structure.html'));
+});
+app.use('/api/admin/students', requireAuth, requireRole('administrator'), studentsRoutes);
+app.use('/api/admin/academic-structure', requireAuth, requireRole('administrator'), academicStructureRoutes);
+const requireTeacherPage = (req, res, next) => {
+  if (req.user.mustChangePassword) return res.redirect('/change-password');
+  if (req.user.role !== 'teacher') {
+    const destination = req.user.role === 'administrator' ? '/admin/dashboard' : '/student/dashboard';
+    return res.redirect(destination);
+  }
+  next();
+};
+const requireTeacherApi = (req, res, next) => {
+  if (req.user.mustChangePassword) return res.redirect('/change-password');
+  if (req.user.role !== 'teacher') return res.status(403).json({ error: 'Teacher access required.' });
+  next();
+};
+app.get('/teacher/dashboard', requireAuth, requireTeacherPage, dashboard('teacher.html'));
+app.get('/teacher/profile', requireAuth, requireTeacherPage, dashboard('teacher-profile.html'));
+app.use('/api/teacher/profile', requireAuth, requireTeacherApi, teacherProfileRoutes);
 app.get('/student/dashboard', requireAuth, requireRole('student'), dashboard('student.html'));
 app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: { name: req.user.name, loginId: req.user.loginId, email: req.user.email, role: req.user.role, mustChangePassword: req.user.mustChangePassword } }));
 

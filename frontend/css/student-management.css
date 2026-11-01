@@ -1,0 +1,234 @@
+.student-content {
+  width: min(100%, 1660px);
+}
+
+.student-title {
+  margin-bottom: 27px;
+}
+
+.student-title .teacher-breadcrumb {
+  margin: 0 0 7px;
+}
+
+.student-title h1 {
+  margin: 0 0 8px;
+  color: #162440;
+  font-size: clamp(28px, 2.5vw, 37px);
+  font-weight: 450;
+  letter-spacing: -.04em;
+}
+
+.student-title p:last-child {
+  margin: 0;
+  color: #76829b;
+  font-size: 13px;
+}
+
+.student-stats {
+  margin-bottom: 17px;
+}
+
+.student-toolbar {
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 11px 14px;
+}
+
+.student-toolbar .teacher-search {
+  min-width: 210px;
+  flex: 1 1 245px;
+  font-size: 21px;
+}
+
+.student-toolbar .teacher-search input {
+  min-width: 0;
+  font-size: 12px;
+}
+
+.student-toolbar .teacher-search kbd {
+  padding: 4px 7px;
+  border: 1px solid #e3e5ed;
+  border-radius: 5px;
+  color: #8f98ab;
+  font-family: inherit;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.student-toolbar select {
+  min-width: 115px;
+  max-width: 190px;
+  flex: 0 1 auto;
+  font-size: 11px;
+}
+
+.student-toolbar select:disabled {
+  color: #a1a9b8;
+  cursor: not-allowed;
+}
+
+.student-table {
+  min-width: 1050px;
+}
+
+.student-table td {
+  height: 66px;
+  font-size: 11px;
+}
+
+.student-table .teacher-identity {
+  max-width: 200px;
+}
+
+.student-table .teacher-identity strong,
+.student-table .teacher-identity small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-programme-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-programme-copy strong {
+  color: #263552;
+  font-size: 11px;
+}
+
+.student-programme-copy small {
+  color: #7d8aa3;
+  font-size: 9px;
+}
+
+.status-pill.not_linked {
+  background: #fff0e5;
+  color: #bd612c;
+}
+
+.student-drawer {
+  width: min(760px, 100%);
+  max-height: min(920px, calc(100dvh - 42px));
+}
+
+.student-fields {
+  padding: 22px 28px 16px;
+  gap: 15px 16px;
+}
+
+.student-fields label {
+  min-width: 0;
+  font-size: 11px;
+}
+
+.student-fields input,
+.student-fields select {
+  height: 47px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.student-fields input[readonly] {
+  background: #f9faff;
+  color: #596782;
+}
+
+.student-fields label[hidden] {
+  display: none;
+}
+
+.student-calendar-note {
+  margin: 0 28px 10px;
+  color: #72809a;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.student-drawer .invite-note {
+  margin: 0 28px 8px;
+}
+
+.student-drawer .form-error {
+  min-height: 0;
+}
+
+.student-detail-card {
+  width: min(620px, calc(100% - 32px));
+  max-height: min(85vh, 760px);
+  overflow-y: auto;
+}
+
+.student-detail-card h2 {
+  margin-top: 8px;
+}
+
+.student-detail-card dl {
+  grid-template-columns: minmax(140px, .8fr) minmax(0, 1.2fr);
+  line-height: 1.45;
+}
+
+.student-detail-card dd {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1150px) {
+  .student-toolbar .teacher-search {
+    flex-basis: 100%;
+  }
+
+  .student-toolbar select {
+    flex: 1 1 145px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .student-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .student-title > .primary-button {
+    align-self: stretch;
+  }
+
+  .student-stats article {
+    padding-inline: 13px;
+  }
+
+  .student-toolbar {
+    gap: 8px;
+  }
+
+  .student-toolbar select {
+    min-width: calc(50% - 5px);
+    flex: 1 1 calc(50% - 5px);
+  }
+
+  .student-fields {
+    grid-template-columns: 1fr;
+    padding-inline: 18px;
+  }
+
+  .student-calendar-note,
+  .student-drawer .invite-note {
+    margin-inline: 18px;
+  }
+
+  .student-drawer .drawer-fields label:nth-child(3) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 460px) {
+  .student-toolbar select {
+    min-width: 100%;
+    flex-basis: 100%;
+  }
+
+  .student-table .teacher-row-actions {
+    min-width: 110px;
+  }
+}

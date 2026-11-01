@@ -1,0 +1,334 @@
+.structure-content {
+  max-width: 1600px;
+}
+
+.structure-content .teacher-title {
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+
+.structure-content .teacher-title h1 {
+  margin: 6px 0 8px;
+}
+
+.structure-content .teacher-title p:last-child {
+  margin: 0;
+  color: #76829b;
+  font-size: 13px;
+}
+
+.structure-students-link {
+  color: #6255ad;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.structure-students-link:hover {
+  text-decoration: underline;
+}
+
+.structure-panel {
+  margin: 0 0 17px;
+  padding: 22px;
+  border: 1px solid #dfe5ef;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.structure-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 17px;
+}
+
+.structure-panel-heading .eyebrow {
+  color: #8490a8;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.structure-panel-heading h2 {
+  margin: 7px 0 0;
+  color: #1d2a45;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.structure-inline-form {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 15px;
+  border: 1px solid #edf0f5;
+  border-radius: 9px;
+  background: #fbfcfe;
+}
+
+.structure-inline-form label,
+.structure-record label {
+  min-width: 120px;
+  display: flex;
+  flex: 1 1 170px;
+  flex-direction: column;
+  gap: 6px;
+  color: #52607b;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.structure-inline-form input,
+.structure-inline-form select,
+.structure-record input {
+  width: 100%;
+  height: 39px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid #d8dfeb;
+  border-radius: 7px;
+  outline-color: #8171dd;
+  background: #fff;
+  color: #2d3b56;
+  font: inherit;
+  font-size: 11px;
+}
+
+.structure-inline-form .primary-button {
+  min-height: 39px;
+  padding: 0 14px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.structure-inline-form .structure-checkbox {
+  min-width: 190px;
+  flex: 0 1 210px;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 10px;
+}
+
+.structure-inline-form .structure-checkbox input {
+  width: 15px;
+  height: 15px;
+  accent-color: #6959b5;
+}
+
+.structure-hint {
+  margin: 12px 2px 0;
+  color: #7b88a0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.structure-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 13px;
+}
+
+.structure-record,
+.structure-list-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(170px, 1.4fr) minmax(110px, .7fr) minmax(92px, .5fr) minmax(92px, .5fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 4px;
+  border-bottom: 1px solid #e9edf3;
+}
+
+.structure-record:last-child,
+.structure-list-row:last-child {
+  border-bottom: 0;
+}
+
+.structure-record label {
+  min-width: 0;
+  flex-basis: auto;
+  margin: 0;
+  font-size: 9px;
+}
+
+.structure-record input[readonly] {
+  background: #f6f7fa;
+  color: #75819a;
+}
+
+.structure-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.structure-record-actions button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #dce2ed;
+  border-radius: 7px;
+  background: #fff;
+  color: #43516c;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.structure-record-actions button:hover {
+  border-color: #aa9ce8;
+  color: #5e51aa;
+}
+
+.structure-record-actions .warning-button {
+  color: #a85836;
+}
+
+.structure-type {
+  color: #6a5ab9;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.structure-record-parent {
+  color: #77849c;
+  font-size: 10px;
+}
+
+.structure-option-record {
+  grid-template-columns: 100px minmax(170px, 1fr) minmax(130px, .8fr) auto;
+}
+
+.structure-semester-record {
+  grid-template-columns: 120px minmax(160px, 1fr) auto;
+}
+
+.structure-section-record {
+  grid-template-columns: minmax(170px, 1fr) minmax(150px, .8fr) auto;
+}
+
+.structure-list-row {
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, .8fr) minmax(120px, .7fr) auto;
+}
+
+.structure-list-row strong {
+  color: #293752;
+  font-size: 11px;
+}
+
+.structure-list-row small {
+  color: #7c88a0;
+  font-size: 10px;
+}
+
+.structure-status {
+  width: fit-content;
+  padding: 6px 9px;
+  border-radius: 15px;
+  background: #f0f2f6;
+  color: #697690;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.structure-status.active,
+.active-calendar {
+  background: #e7f4ed;
+  color: #27724f;
+}
+
+.active-calendar {
+  padding: 7px 10px;
+  border-radius: 16px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.active-calendar.inactive {
+  background: #fff0e5;
+  color: #a85731;
+}
+
+.structure-subheading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 19px;
+}
+
+.structure-subheading h3 {
+  margin: 0;
+  color: #293752;
+  font-size: 12px;
+}
+
+.structure-subheading small {
+  color: #7c88a0;
+  font-size: 9px;
+}
+
+@media (max-width: 850px) {
+  .structure-record,
+  .structure-list-row,
+  .structure-option-record,
+  .structure-semester-record,
+  .structure-section-record {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .structure-record-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .structure-record-parent {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 600px) {
+  .structure-content .teacher-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .structure-panel {
+    padding: 16px 12px;
+  }
+
+  .structure-inline-form {
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .structure-inline-form label,
+  .structure-inline-form .structure-checkbox {
+    min-width: 100%;
+    flex-basis: 100%;
+  }
+
+  .structure-inline-form .primary-button {
+    width: 100%;
+  }
+
+  .structure-list-row,
+  .structure-record,
+  .structure-option-record,
+  .structure-semester-record,
+  .structure-section-record {
+    grid-template-columns: 1fr;
+  }
+
+  .structure-subheading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

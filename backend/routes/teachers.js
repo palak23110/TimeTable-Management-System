@@ -1,16 +1,13 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const pool = require('../database/pool');
-const {
-  generateTeacherTemporaryPassword,
-  teacherIdFromUserId,
-} = require('../services/teacher-password');
+const { generateTeacherTemporaryPassword } = require('../services/teacher-password');
 
 const router = express.Router();
 const pageSize = 8;
 
 router.use((req, res, next) => {
-  if (req.method === 'POST' && !req.is('application/json')) {
+  if (['POST', 'PUT', 'PATCH'].includes(req.method) && !req.is('application/json')) {
     return res.status(415).json({ error: 'Send teacher data as JSON.' });
   }
 
@@ -49,11 +46,39 @@ router.get('/stats', async (req, res, next) => {
 router.get('/subjects', async (req, res, next) => {
   try {
     const [subjects] = await pool.execute(`
-      SELECT id, subject_name AS name
+      SELECT id, subject_code AS code, subject_name AS name, is_active AS isActive
       FROM subjects
       WHERE is_active = 1
       ORDER BY subject_name
     `);
+
+    res.json({ subjects });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/:userId/subjects', async (req, res, next) => {
+  if (!/^\d+$/.test(req.params.userId)) {
+    return res.status(404).json({ error: 'Teacher not found.' });
+  }
+
+  try {
+    const [teachers] = await pool.execute(
+      "SELECT id FROM users WHERE id = ? AND role = 'teacher' LIMIT 1",
+      [req.params.userId],
+    );
+    if (!teachers.length) {
+      return res.status(404).json({ error: 'Teacher not found.' });
+    }
+
+    const [subjects] = await pool.execute(`
+      SELECT s.id, s.subject_code AS code, s.subject_name AS name, s.is_active AS isActive
+      FROM teacher_subjects ts
+      JOIN subjects s ON s.id = ts.subject_id
+      WHERE ts.teacher_user_id = ?
+      ORDER BY s.subject_name
+    `, [req.params.userId]);
 
     res.json({ subjects });
   } catch (error) {
@@ -174,9 +199,269 @@ router.get('/:userId', async (req, res, next) => {
   }
 });
 
+router.patch('/:userId', async (req, res, next) => {
+  if (!/^\d+$/.test(req.params.userId)) {
+    return res.status(404).json({ error: 'Teacher not found.' });
+  }
+
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const userChanges = {};
+  const profileChanges = {};
+  const textFields = {
+    department: ['department', 160],
+    designation: ['designation', 160],
+    highestQualification: ['highest_qualification', 180],
+    universityInstitution: ['university_institution', 180],
+    specialization: ['specialization', 180],
+    previousEmployer: ['previous_organization', 180],
+    previousJobRole: ['previous_job_role', 160],
+    responsibilities: ['previous_job_responsibilities', 10000],
+    skills: ['skills_areas_of_expertise', 10000],
+    professionalSummary: ['professional_summary', 10000],
+  };
+  const allowedFields = new Set([
+    'name', 'teacherId', 'email', 'contactNumber', 'status',
+    ...Object.keys(textFields), 'yearsOfExperience',
+  ]);
+
+  if (Object.keys(body).some((field) => !allowedFields.has(field))) {
+    return res.status(400).json({ error: 'The update contains unsupported fields.' });
+  }
+
+  if (Object.hasOwn(body, 'name')) {
+    if (typeof body.name !== 'string' || !body.name.trim() || body.name.trim().length > 160) {
+      return res.status(400).json({ error: 'Enter a teacher name of 1–160 characters.' });
+    }
+    userChanges.name = body.name.trim();
+  }
+
+  if (Object.hasOwn(body, 'teacherId')) {
+    const teacherId = typeof body.teacherId === 'string' ? body.teacherId.trim() : '';
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$/.test(teacherId)) {
+      return res.status(400).json({ error: 'Enter a valid Teacher ID (up to 24 letters, numbers, dashes or underscores).' });
+    }
+    profileChanges.teacher_id = teacherId;
+  }
+
+  if (Object.hasOwn(body, 'email')) {
+    const email = typeof body.email === 'string' ? body.email.trim() : '';
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Enter a valid email address.' });
+    }
+    userChanges.email = email;
+    userChanges.login_id = email;
+  }
+
+  if (Object.hasOwn(body, 'contactNumber')) {
+    const contact = typeof body.contactNumber === 'string' ? body.contactNumber.trim() : '';
+    const digits = contact.replace(/\D/g, '');
+    if (contact.length > 32 || (contact && (!/^[+()\d.\s-]+$/.test(contact) || digits.length < 7 || digits.length > 15))) {
+      return res.status(400).json({ error: 'Enter a valid contact number or leave it blank.' });
+    }
+    profileChanges.contact_number = contact || null;
+  }
+
+  for (const [field, [column, maxLength]] of Object.entries(textFields)) {
+    if (!Object.hasOwn(body, field)) continue;
+    if (body[field] !== null && typeof body[field] !== 'string') {
+      return res.status(400).json({ error: `${field} must be text.` });
+    }
+    const value = typeof body[field] === 'string' ? body[field].trim() : '';
+    if (value.length > maxLength) {
+      return res.status(400).json({ error: `${field} must be ${maxLength} characters or fewer.` });
+    }
+    profileChanges[column] = value || null;
+  }
+
+  if (Object.hasOwn(body, 'yearsOfExperience')) {
+    const raw = body.yearsOfExperience;
+    const years = raw === '' || raw === null ? null : Number(raw);
+    if (years !== null && (!Number.isFinite(years) || years < 0 || years > 999.99)) {
+      return res.status(400).json({ error: 'Experience must be between 0 and 999.99 years.' });
+    }
+    profileChanges.years_of_experience = years;
+  }
+
+  if (Object.hasOwn(body, 'status')) {
+    if (!['active', 'inactive'].includes(body.status)) {
+      return res.status(400).json({ error: 'Choose Active or Inactive account status.' });
+    }
+    userChanges.is_active = body.status === 'active';
+  }
+
+  if (!Object.keys(userChanges).length && !Object.keys(profileChanges).length) {
+    return res.status(400).json({ error: 'Make at least one change before saving.' });
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [teachers] = await connection.execute(`
+      SELECT u.id
+      FROM users u
+      JOIN teacher_profiles p ON p.user_id = u.id
+      WHERE u.id = ? AND u.role = 'teacher'
+      FOR UPDATE
+    `, [req.params.userId]);
+
+    if (!teachers.length) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'Teacher not found.' });
+    }
+
+    if (userChanges.email) {
+      const [duplicates] = await connection.execute(`
+        SELECT id FROM users
+        WHERE id <> ? AND (email = ? OR login_id = ?)
+        LIMIT 1
+      `, [req.params.userId, userChanges.email, userChanges.email]);
+      if (duplicates.length) {
+        await connection.rollback();
+        return res.status(409).json({ error: 'Another account already uses that email address.' });
+      }
+    }
+
+    if (profileChanges.teacher_id) {
+      const [duplicates] = await connection.execute(
+        'SELECT user_id FROM teacher_profiles WHERE teacher_id = ? AND user_id <> ? LIMIT 1',
+        [profileChanges.teacher_id, req.params.userId],
+      );
+      if (duplicates.length) {
+        await connection.rollback();
+        return res.status(409).json({ error: 'Another teacher already uses that Teacher ID.' });
+      }
+    }
+
+    const userEntries = Object.entries(userChanges);
+    if (userEntries.length) {
+      const assignments = userEntries.map(([column]) => `${column} = ?`).join(', ');
+      await connection.execute(
+        `UPDATE users SET ${assignments} WHERE id = ? AND role = 'teacher'`,
+        [...userEntries.map(([, value]) => value), req.params.userId],
+      );
+    }
+
+    const profileEntries = Object.entries(profileChanges);
+    const profileAssignments = profileEntries.map(([column]) => `${column} = ?`);
+    profileAssignments.push('updated_by_user_id = ?', "updated_by_role = 'administrator'", 'updated_at = CURRENT_TIMESTAMP');
+    await connection.execute(
+      `UPDATE teacher_profiles SET ${profileAssignments.join(', ')} WHERE user_id = ?`,
+      [...profileEntries.map(([, value]) => value), req.user.id, req.params.userId],
+    );
+
+    await connection.commit();
+    const [updated] = await pool.execute(`
+      SELECT u.id, u.name, u.email, u.is_active AS isActive,
+        p.teacher_id AS teacherId, p.contact_number AS contactNumber,
+        p.department, p.designation,
+        p.highest_qualification AS highestQualification,
+        p.university_institution AS universityInstitution,
+        p.specialization, p.years_of_experience AS yearsOfExperience,
+        p.previous_organization AS previousEmployer,
+        p.previous_job_role AS previousJobRole,
+        p.previous_job_responsibilities AS responsibilities,
+        p.skills_areas_of_expertise AS skills,
+        p.professional_summary AS professionalSummary,
+        p.updated_at AS updatedAt,
+        p.updated_by_user_id AS updatedByUserId,
+        p.updated_by_role AS updatedByRole
+      FROM users u
+      JOIN teacher_profiles p ON p.user_id = u.id
+      WHERE u.id = ? AND u.role = 'teacher'
+      LIMIT 1
+    `, [req.params.userId]);
+
+    res.json({ message: 'Teacher details updated.', teacher: updated[0] });
+  } catch (error) {
+    await connection.rollback();
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'The email or Teacher ID is already in use.' });
+    }
+    next(error);
+  } finally {
+    connection.release();
+  }
+});
+
+router.put('/:userId/subjects', async (req, res, next) => {
+  if (!/^\d+$/.test(req.params.userId)) {
+    return res.status(404).json({ error: 'Teacher not found.' });
+  }
+
+  const subjectIds = req.body?.subjectIds;
+  if (
+    !Array.isArray(subjectIds)
+    || subjectIds.length > 250
+    || subjectIds.some((id) => !Number.isSafeInteger(Number(id)) || Number(id) < 1)
+    || new Set(subjectIds.map(Number)).size !== subjectIds.length
+  ) {
+    return res.status(400).json({ error: 'Provide a list of unique valid subject IDs.' });
+  }
+
+  const normalizedIds = subjectIds.map(Number);
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [teachers] = await connection.execute(
+      "SELECT id FROM users WHERE id = ? AND role = 'teacher' FOR UPDATE",
+      [req.params.userId],
+    );
+    if (!teachers.length) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'Teacher not found.' });
+    }
+
+    if (normalizedIds.length) {
+      const placeholders = normalizedIds.map(() => '?').join(', ');
+      const [subjects] = await connection.execute(`
+        SELECT s.id
+        FROM subjects s
+        WHERE s.id IN (${placeholders})
+          AND (s.is_active = 1 OR EXISTS (
+            SELECT 1 FROM teacher_subjects ts
+            WHERE ts.teacher_user_id = ? AND ts.subject_id = s.id
+          ))
+      `, [...normalizedIds, req.params.userId]);
+      if (subjects.length !== normalizedIds.length) {
+        await connection.rollback();
+        return res.status(400).json({ error: 'One or more selected subjects are unavailable.' });
+      }
+    }
+
+    await connection.execute(
+      'DELETE FROM teacher_subjects WHERE teacher_user_id = ?',
+      [req.params.userId],
+    );
+    if (normalizedIds.length) {
+      const tuples = normalizedIds.map(() => '(?, ?)').join(', ');
+      const values = normalizedIds.flatMap((subjectId) => [req.params.userId, subjectId]);
+      await connection.execute(
+        `INSERT INTO teacher_subjects (teacher_user_id, subject_id) VALUES ${tuples}`,
+        values,
+      );
+    }
+    await connection.commit();
+
+    const [subjects] = await pool.execute(`
+      SELECT s.id, s.subject_code AS code, s.subject_name AS name, s.is_active AS isActive
+      FROM teacher_subjects ts
+      JOIN subjects s ON s.id = ts.subject_id
+      WHERE ts.teacher_user_id = ?
+      ORDER BY s.subject_name
+    `, [req.params.userId]);
+    res.json({ message: 'Teacher subject assignments updated.', subjects });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
+  } finally {
+    connection.release();
+  }
+});
+
 router.post('/', async (req, res, next) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const name = typeof body.name === 'string' ? body.name.trim() : '';
+  const teacherId = typeof body.teacherId === 'string' ? body.teacherId.trim() : '';
   const email = typeof body.email === 'string' ? body.email.trim() : '';
   const contactNumber = typeof body.contactNumber === 'string'
     ? body.contactNumber.trim()
@@ -185,11 +470,12 @@ router.post('/', async (req, res, next) => {
   if (
     !name
     || name.length > 160
+    || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$/.test(teacherId)
     || !email
     || email.length > 254
     || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   ) {
-    return res.status(400).json({ error: 'Enter a valid teacher name and email address.' });
+    return res.status(400).json({ error: 'Enter a valid teacher name, Teacher ID, and email address.' });
   }
 
   const digits = contactNumber.replace(/\D/g, '');
@@ -213,11 +499,18 @@ router.post('/', async (req, res, next) => {
       return res.status(409).json({ error: 'An account already uses that email address.' });
     }
 
+    const [existingTeacherIds] = await pool.execute(
+      'SELECT user_id FROM teacher_profiles WHERE teacher_id = ? LIMIT 1',
+      [teacherId],
+    );
+    if (existingTeacherIds.length) {
+      return res.status(409).json({ error: 'A teacher already uses that Teacher ID.' });
+    }
+
     const temporaryPassword = generateTeacherTemporaryPassword(email);
     const passwordHash = await bcrypt.hash(temporaryPassword, 12);
     const connection = await pool.getConnection();
     let userId;
-    let teacherId;
 
     try {
       await connection.beginTransaction();
@@ -226,7 +519,6 @@ router.post('/', async (req, res, next) => {
         [name, email, email, passwordHash],
       );
       userId = created.insertId;
-      teacherId = teacherIdFromUserId(userId);
 
       await connection.execute(`
         INSERT INTO teacher_profiles (user_id, teacher_id, contact_number, invitation_pending)

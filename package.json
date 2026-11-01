@@ -10,6 +10,9 @@
     "db:seed-admin": "node backend/database/seed-admin.js",
     "db:seed-test-accounts": "node backend/database/seed-test-accounts.js",
     "db:migrate-teachers": "node backend/database/migrate-teacher-management.js",
+    "db:migrate-teacher-profile-audit": "node backend/database/migrate-teacher-profile-audit.js",
+    "db:migrate-students": "node backend/database/migrate-student-management.js",
+    "test:students": "node --test backend/test/student-management.test.js",
     "test:teachers": "node --test backend/test/teacher-management.test.js",
     "test:auth-roles": "node --test backend/test/auth-roles.test.js",
     "test:tc05": "node --test backend/test/tc05-reset-flow.test.js"
