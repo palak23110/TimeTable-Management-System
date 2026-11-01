@@ -7,3 +7,5 @@ dist/
 !.env.example
 TEST_CREDENTIALS.md
 npm-debug.log*
+
+.data/

@@ -22,7 +22,13 @@
     "test:students": "node --test backend/test/student-management.test.js",
     "test:teachers": "node --test backend/test/teacher-management.test.js",
     "test:auth-roles": "node --test backend/test/auth-roles.test.js",
-    "test:tc05": "node --test backend/test/tc05-reset-flow.test.js"
+    "test:tc05": "node --test backend/test/tc05-reset-flow.test.js",
+    "db:migrate-timetable": "node backend/database/migrate-timetable-management.js",
+    "db:migrate-rescheduling": "node backend/database/migrate-timetable-rescheduling.js",
+    "test:timetable": "node --test backend/test/timetable-management.test.js",
+    "test:conflicts": "node --test backend/test/conflict-detection.test.js",
+    "test:viewing": "node --test backend/test/timetable-viewing.test.js",
+    "test:rescheduling": "node --test backend/test/timetable-rescheduling.test.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

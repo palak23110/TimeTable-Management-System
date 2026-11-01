@@ -1,0 +1,547 @@
+/* Timetable Creation and Editing Styles */
+.timetable-content { padding-top: 40px; }
+.timetable-title { align-items: flex-end; margin-bottom: 30px; display: flex; justify-content: space-between; }
+.timetable-header-actions { display: flex; align-items: center; gap: 10px; }
+.timetable-message { min-height: 0; margin: 0; }
+.timetable-message:not(:empty) {
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  border-radius: 8px;
+  background: #edf8f2;
+  color: #187b54;
+  font-size: 13px;
+  font-weight: 500;
+}
+.timetable-message.is-error {
+  background: #fff0f0;
+  color: #b42335;
+}
+.timetable-table-wrap { margin-top: 0; }
+.timetable-table { min-width: 950px; }
+.timetable-table th { white-space: nowrap; }
+.timetable-table td { vertical-align: middle; }
+.timetable-table td strong { color: #20345e; }
+.timetable-table td small { display: block; margin-top: 3px; color: #8994aa; font-size: 11px; }
+
+.slot-time-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #eef2fb;
+  color: #274075;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.day-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f3effe;
+  color: #553bb8;
+  font-weight: 700;
+  font-size: 11px;
+  margin-right: 6px;
+}
+
+.room-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #edf7f3;
+  color: #1c7151;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.timetable-actions { white-space: nowrap; }
+.timetable-actions button {
+  padding: 6px 10px;
+  margin-right: 6px;
+  border: 1px solid #d5dceb;
+  border-radius: 6px;
+  background: #fff;
+  color: #4b5874;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.timetable-actions button:hover {
+  background: #f4f6fb;
+  color: #20345e;
+  border-color: #9cb1d9;
+}
+.timetable-actions button.action-delete {
+  color: #b42335;
+  border-color: #f7d4d7;
+}
+.timetable-actions button.action-delete:hover {
+  background: #fff0f0;
+  border-color: #e59ba3;
+}
+
+/* View Switcher Tabs */
+.view-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 8px;
+  background: #eceff6;
+  gap: 3px;
+}
+.view-tab {
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #5c6883;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.view-tab.active {
+  background: #fff;
+  color: #243452;
+  box-shadow: 0 1px 3px rgba(20, 30, 55, 0.1);
+}
+
+/* Weekly Grid Matrix View */
+.timetable-grid-section {
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+.timetable-grid-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #dce2ee;
+  border-radius: 12px;
+  background: #fff;
+}
+.timetable-matrix-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+.timetable-matrix-table th {
+  padding: 12px 14px;
+  background: #f6f8fc;
+  border-bottom: 2px solid #d8dfec;
+  border-right: 1px solid #e5eaf3;
+  color: #3b4968;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+.timetable-matrix-table th:last-child {
+  border-right: 0;
+}
+.timetable-matrix-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5eaf3;
+  border-right: 1px solid #e5eaf3;
+  vertical-align: top;
+  height: 90px;
+}
+.timetable-matrix-table td:last-child {
+  border-right: 0;
+}
+.slot-time-col {
+  width: 140px;
+  background: #fafbfe;
+  border-right: 2px solid #d8dfec !important;
+}
+.slot-time-col strong {
+  display: block;
+  color: #243452;
+  font-size: 12px;
+}
+.slot-time-col small {
+  display: block;
+  margin-top: 3px;
+  color: #6c7893;
+  font-size: 11px;
+}
+
+.matrix-cell.empty-slot {
+  background: #fafbfc;
+}
+.free-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #f0f2f7;
+  color: #929db3;
+  font-size: 10px;
+  font-weight: 600;
+}
+.muted-slot {
+  color: #b0bac9;
+}
+
+.matrix-card {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f2f5fd;
+  border-left: 3px solid #5d48c8;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.matrix-card .matrix-subject {
+  color: #1f2d48;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.matrix-card .matrix-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.matrix-card .matrix-sec,
+.matrix-card .matrix-room {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid #d8e0f0;
+  color: #3b4968;
+  font-size: 10px;
+  font-weight: 700;
+}
+.matrix-card .matrix-teacher {
+  color: #4f5d79;
+  font-size: 11px;
+  font-weight: 600;
+}
+.matrix-card .matrix-building {
+  color: #838fa6;
+  font-size: 10px;
+}
+
+/* Modal Overlay and Dialog */
+.timetable-overlay,
+.room-overlay {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(19, 28, 49, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.timetable-overlay[hidden],
+.room-overlay[hidden] {
+  display: none !important;
+}
+
+.timetable-dialog,
+.room-dialog {
+  width: min(680px, 100%);
+  max-height: min(90vh, 850px);
+  overflow-y: auto;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(20, 30, 55, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.timetable-dialog > header,
+.room-dialog > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid #e1e5ed;
+}
+
+.timetable-dialog .eyebrow,
+.room-dialog .eyebrow {
+  color: #8a94ad;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.timetable-dialog h2,
+.room-dialog h2 {
+  margin: 6px 0 4px;
+  color: #243452;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+
+.timetable-dialog header p,
+.room-dialog header p {
+  margin: 0;
+  color: #77839c;
+  font-size: 12px;
+}
+
+.dialog-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f4f7;
+  color: #78839a;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all .15s ease;
+}
+.dialog-close:hover {
+  background: #e6e8ef;
+  color: #20345e;
+}
+
+.timetable-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 22px 28px 14px;
+}
+
+.timetable-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #4b5874;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.timetable-form-grid select,
+.timetable-form-grid input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d5dceb;
+  border-radius: 7px;
+  background: #fff;
+  color: #33415f;
+  font-size: 12px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+
+.timetable-form-grid select:focus,
+.timetable-form-grid input:focus {
+  border-color: #8777df;
+  box-shadow: 0 0 0 3px rgba(126, 105, 218, .12);
+}
+
+.timetable-form-grid select:disabled {
+  background: #f5f6f9;
+  color: #98a2b5;
+  cursor: not-allowed;
+}
+
+.validation-callout {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 28px 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #eff8f3;
+  color: #267d5a;
+  font-size: 11px;
+}
+
+.validation-callout strong {
+  font-weight: 700;
+}
+
+.validation-callout span {
+  color: #557766;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.form-error {
+  min-height: 0;
+  margin: 4px 28px 12px;
+  color: #b42335;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.timetable-dialog form > footer,
+.timetable-dialog > footer,
+.room-dialog form > footer,
+.room-dialog > footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 28px;
+  border-top: 1px solid #e1e5ed;
+  background: #fafbfc;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: #6e7a96;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+.text-button:hover {
+  color: #20345e;
+  background: #f0f2f7;
+}
+
+.danger-button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #f0cfd3;
+  border-radius: 7px;
+  background: #b42335;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.danger-button:hover {
+  background: #981b2b;
+}
+
+.confirm-dialog {
+  width: min(500px, 100%);
+}
+
+.confirm-dialog > header {
+  border-bottom: 0;
+  padding-bottom: 8px;
+}
+
+.confirm-dialog > header p {
+  line-height: 1.6;
+}
+
+.confirm-dialog > footer {
+  border-top: 1px solid #e1e5ed;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.timetable-error {
+  min-height: 0;
+  margin: 15px 0 0;
+  color: #b42335;
+  font-size: 12px;
+}
+
+/* Print Styling */
+.print-header {
+  display: none;
+}
+
+@media print {
+  .no-print,
+  .admin-sidebar,
+  .admin-topbar,
+  .sidebar-scrim,
+  .timetable-actions,
+  .teacher-pagination,
+  .teacher-toolbar,
+  .timetable-header-actions,
+  .view-tabs {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 10pt !important;
+  }
+
+  .admin-shell {
+    display: block !important;
+  }
+
+  .admin-main,
+  .admin-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .print-header {
+    display: block !important;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #20345e;
+    text-align: center;
+  }
+  .print-header h2 {
+    margin: 0 0 4px;
+    font-size: 16pt;
+    color: #18233f;
+  }
+  .print-header p {
+    margin: 2px 0;
+    color: #4b5874;
+    font-size: 9pt;
+  }
+
+  .timetable-matrix-table,
+  .timetable-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    border: 1px solid #333 !important;
+    page-break-inside: auto;
+  }
+
+  .timetable-matrix-table th,
+  .timetable-table th {
+    background: #eef2fa !important;
+    color: #000 !important;
+    border: 1px solid #333 !important;
+    font-size: 9pt !important;
+  }
+
+  .timetable-matrix-table td,
+  .timetable-table td {
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid !important;
+  }
+
+  .matrix-card {
+    border-left: 2px solid #000 !important;
+    background: #f7f7f7 !important;
+    padding: 4px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .timetable-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .timetable-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}

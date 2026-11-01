@@ -413,3 +413,77 @@ DESCRIBE users;
 
 SELECT id, name, login_id, email, password_hash, role, is_active
 FROM users;
+
+CREATE TABLE IF NOT EXISTS timetable_entries (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  section_id BIGINT UNSIGNED NOT NULL,
+  subject_id BIGINT UNSIGNED NOT NULL,
+  teacher_user_id BIGINT UNSIGNED NOT NULL,
+  room_id BIGINT UNSIGNED NOT NULL,
+  weekday_id TINYINT UNSIGNED NOT NULL,
+  time_slot_id BIGINT UNSIGNED NOT NULL,
+  academic_year_id BIGINT UNSIGNED NULL,
+  semester_id BIGINT UNSIGNED NULL,
+  created_by_user_id BIGINT UNSIGNED NULL,
+  updated_by_user_id BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_timetable_exact_entry (section_id, subject_id, teacher_user_id, weekday_id, time_slot_id),
+  KEY ix_timetable_section_day (section_id, weekday_id),
+  KEY ix_timetable_teacher_day (teacher_user_id, weekday_id),
+  KEY ix_timetable_room_day (room_id, weekday_id),
+  KEY ix_timetable_slot_day (time_slot_id, weekday_id),
+  CONSTRAINT fk_timetable_section FOREIGN KEY (section_id) REFERENCES academic_sections(id) ON DELETE CASCADE,
+  CONSTRAINT fk_timetable_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+  CONSTRAINT fk_timetable_teacher FOREIGN KEY (teacher_user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_timetable_room FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+  CONSTRAINT fk_timetable_weekday FOREIGN KEY (weekday_id) REFERENCES working_weekdays(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_timetable_time_slot FOREIGN KEY (time_slot_id) REFERENCES time_slots(id) ON DELETE CASCADE,
+  CONSTRAINT fk_timetable_year FOREIGN KEY (academic_year_id) REFERENCES academic_years(id) ON DELETE SET NULL,
+  CONSTRAINT fk_timetable_semester FOREIGN KEY (semester_id) REFERENCES academic_semesters(id) ON DELETE SET NULL,
+  CONSTRAINT fk_timetable_creator FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_timetable_updater FOREIGN KEY (updated_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_rescheduling_authorizations (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  is_authorized TINYINT(1) NOT NULL DEFAULT 1,
+  notes VARCHAR(255) NULL,
+  granted_by_user_id BIGINT UNSIGNED NULL,
+  granted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_tra_user (user_id),
+  CONSTRAINT fk_tra_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_tra_granter FOREIGN KEY (granted_by_user_id) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS timetable_change_logs (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  timetable_entry_id BIGINT UNSIGNED NOT NULL,
+  action_type ENUM('reschedule', 'update', 'cancel') NOT NULL DEFAULT 'reschedule',
+  previous_section_id BIGINT UNSIGNED NULL,
+  previous_subject_id BIGINT UNSIGNED NULL,
+  previous_teacher_user_id BIGINT UNSIGNED NULL,
+  previous_room_id BIGINT UNSIGNED NULL,
+  previous_weekday_id TINYINT UNSIGNED NULL,
+  previous_time_slot_id BIGINT UNSIGNED NULL,
+  new_section_id BIGINT UNSIGNED NULL,
+  new_subject_id BIGINT UNSIGNED NULL,
+  new_teacher_user_id BIGINT UNSIGNED NULL,
+  new_room_id BIGINT UNSIGNED NULL,
+  new_weekday_id TINYINT UNSIGNED NULL,
+  new_time_slot_id BIGINT UNSIGNED NULL,
+  reason VARCHAR(500) NULL,
+  changed_by_user_id BIGINT UNSIGNED NOT NULL,
+  changed_by_role ENUM('administrator', 'teacher') NOT NULL,
+  notification_sent TINYINT(1) NOT NULL DEFAULT 0,
+  notification_recipient_count INT NOT NULL DEFAULT 0,
+  notification_error TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_tcl_entry (timetable_entry_id),
+  INDEX idx_tcl_changed_by (changed_by_user_id),
+  INDEX idx_tcl_created_at (created_at),
+  CONSTRAINT fk_tcl_entry FOREIGN KEY (timetable_entry_id) REFERENCES timetable_entries (id) ON DELETE CASCADE,
+  CONSTRAINT fk_tcl_user FOREIGN KEY (changed_by_user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

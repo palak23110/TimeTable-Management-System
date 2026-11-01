@@ -14,6 +14,9 @@ const academicStructureRoutes = require('./routes/academic-structure');
 const subjectRoutes = require('./routes/subjects');
 const roomRoutes = require('./routes/rooms');
 const timeSlotRoutes = require('./routes/time-slots');
+const timetableRoutes = require('./routes/timetable');
+const teacherTimetableRoutes = require('./routes/teacher-timetable');
+const studentTimetableRoutes = require('./routes/student-timetable');
 
 const app = express();
 const frontend = path.resolve(__dirname, '../frontend');
@@ -83,7 +86,12 @@ app.use('/api/admin/students', requireAuth, requireRole('administrator'), studen
 app.use('/api/admin/academic-structure', requireAuth, requireRole('administrator'), academicStructureRoutes);
 app.use('/api/admin/subjects', requireAuth, requireRole('administrator'), subjectRoutes);
 app.use('/api/admin/rooms', requireAuth, requireRole('administrator'), roomRoutes);
+app.get('/admin/timetable', requireAuth, requireRole('administrator'), (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(frontend, 'dashboards', 'timetable.html'));
+});
 app.use('/api/admin/time-slots', requireAuth, requireRole('administrator'), timeSlotRoutes);
+app.use('/api/admin/timetable', requireAuth, requireRole('administrator'), timetableRoutes);
 const requireTeacherPage = (req, res, next) => {
   if (req.user.mustChangePassword) return res.redirect('/change-password');
   if (req.user.role !== 'teacher') {
@@ -99,8 +107,12 @@ const requireTeacherApi = (req, res, next) => {
 };
 app.get('/teacher/dashboard', requireAuth, requireTeacherPage, dashboard('teacher.html'));
 app.get('/teacher/profile', requireAuth, requireTeacherPage, dashboard('teacher-profile.html'));
+app.get('/teacher/timetable', requireAuth, requireTeacherPage, dashboard('teacher-timetable.html'));
 app.use('/api/teacher/profile', requireAuth, requireTeacherApi, teacherProfileRoutes);
+app.use('/api/teacher/timetable', requireAuth, requireTeacherApi, teacherTimetableRoutes);
 app.get('/student/dashboard', requireAuth, requireRole('student'), dashboard('student.html'));
+app.get('/student/timetable', requireAuth, requireRole('student'), dashboard('student-timetable.html'));
+app.use('/api/student/timetable', requireAuth, requireRole('student'), studentTimetableRoutes);
 app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: { name: req.user.name, loginId: req.user.loginId, email: req.user.email, role: req.user.role, mustChangePassword: req.user.mustChangePassword } }));
 
 app.use((req, res) => req.path.startsWith('/api/') ? res.status(404).json({ error: 'Not found.' }) : res.status(404).send('Page not found.'));
