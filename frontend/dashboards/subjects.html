@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#18233f">
+    <title>Subject Management | BMU TTMS</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/css/teacher-management.css">
+    <link rel="stylesheet" href="/css/teacher-management-overrides.css">
+    <link rel="stylesheet" href="/css/subject-management.css">
+    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/subjects.js" defer></script>
+  </head>
+  <body class="admin-dashboard subject-management-page">
+    <div class="admin-shell">
+      <aside class="admin-sidebar" id="admin-sidebar" aria-label="Administrator navigation">
+        <a class="admin-brand" href="/admin/dashboard" aria-label="BMU Timetable System overview">
+          <span class="admin-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg></span>
+          <span><strong>BMU</strong><small>Timetable System</small></span>
+        </a>
+        <div class="workspace-heading"><span>Academic Workspace</span><span class="academic-year">2025–26</span></div>
+        <nav class="admin-nav">
+          <a class="nav-item" href="/admin/dashboard"><span>▦</span><span>Overview</span></a>
+          <p class="nav-group-label">Management</p>
+          <a class="nav-item" href="/admin/teachers"><span>♙</span><span>Teachers</span></a>
+          <a class="nav-item" href="/admin/students"><span>♧</span><span>Students</span></a>
+          <a class="nav-item" href="/admin/academic-structure"><span>⌂</span><span>Academic structure</span></a>
+          <a class="nav-item active" href="/admin/subjects" aria-current="page"><span>▤</span><span>Subjects</span></a>
+          <p class="nav-group-label">Scheduling</p>
+          <button class="nav-item nav-placeholder" type="button" disabled><span>▥</span><span>Rooms &amp; labs</span></button>
+        </nav>
+        <div class="help-card"><span class="help-icon">ⓘ</span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow">→</span></div>
+        <div class="sidebar-profile">
+          <span class="profile-avatar" data-user-initials>BM</span>
+          <span class="profile-copy"><strong data-user-name></strong><small><span data-user-role>Administrator</span><span class="profile-id" data-user-login></span></small></span>
+          <button class="sidebar-logout" type="button" data-logout aria-label="Log out">↪</button>
+        </div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar">
+          <button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false">☰</button>
+          <label class="topbar-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Search people, rooms, schedules…" disabled aria-label="Search unavailable"><kbd>⌘ K</kbd></label>
+          <div class="topbar-actions"><span class="view-label">Administrator view</span><span class="topbar-divider"></span><span class="topbar-profile"><span class="profile-avatar small" data-user-initials>BM</span><span><strong data-user-name></strong><small data-user-login></small></span></span></div>
+        </header>
+
+        <main class="admin-content teacher-content subject-content">
+          <div class="teacher-title subject-title">
+            <div><p class="teacher-breadcrumb">TTMS &nbsp;›&nbsp; Academics · Subjects</p><h1>Subject management</h1><p>Manage courses and assignments across classes, students, and faculty.</p></div>
+            <button class="primary-button" type="button" data-open-subject>＋ &nbsp;Add subject</button>
+          </div>
+
+          <section class="teacher-stats subject-stats" aria-label="Subject statistics">
+            <article><span>▤</span><div><strong data-stat="total">—</strong><small>Total curriculum records</small></div></article>
+            <article><span>✓</span><div><strong data-stat="active">—</strong><small>Active subject records</small></div></article>
+            <article><span>◇</span><div><strong data-stat="choiceRequired">—</strong><small>Choice-required records</small></div></article>
+            <article><span>!</span><div><strong data-stat="needsReview">—</strong><small>Needs review</small></div></article>
+          </section>
+
+          <section class="teacher-toolbar subject-toolbar" aria-label="Search and filter subjects">
+            <label class="teacher-search">⌕ <input type="search" data-search placeholder="Search by course name or code…" aria-label="Search subjects"><kbd>⌘ K</kbd></label>
+            <select data-filter-programme aria-label="Filter by programme"><option value="">All programmes</option></select>
+            <select data-filter-branch aria-label="Filter by branch" disabled><option value="">All branches</option></select>
+            <select data-filter-semester aria-label="Filter by semester"><option value="">All semesters</option></select>
+            <select data-filter-credits aria-label="Filter by credits"><option value="">All credits</option><option value="2">2 credits</option><option value="3">3 credits</option><option value="4">4 credits</option><option value="5">5 credits</option></select>
+            <button class="filter-reset" type="button" data-clear aria-label="Clear filters" title="Clear filters">☷</button>
+          </section>
+
+          <section class="teacher-table-wrap subject-table-wrap" aria-label="Subject records">
+            <div class="table-scroll"><table class="teacher-table subject-table">
+              <thead><tr><th>Course</th><th>Course code</th><th>Credits</th><th>Programme / branch</th><th>Semester</th><th>Class assignments</th><th>Teacher assignments</th><th>Actions</th></tr></thead>
+              <tbody data-subject-rows><tr><td colspan="8" class="empty-row">Loading curriculum records…</td></tr></tbody>
+            </table></div>
+            <footer class="teacher-pagination"><span data-page-summary></span><div><button type="button" data-page-prev aria-label="Previous page">‹</button><span data-page-number>1</span><button type="button" data-page-next aria-label="Next page">›</button></div></footer>
+          </section>
+
+          <section class="assignment-workspace" aria-labelledby="assignment-title">
+            <header class="assignment-heading"><div><span class="eyebrow">Course Assignment Workspace</span><h2 id="assignment-title">Assign courses</h2><p>Assign courses to classes, individual students, or teachers from one place.</p></div></header>
+            <div class="assignment-tabs" role="tablist" aria-label="Assignment type">
+              <button type="button" role="tab" aria-selected="true" data-assignment-tab="class">Class Assignment</button>
+              <button type="button" role="tab" aria-selected="false" data-assignment-tab="teacher">Teacher Assignment</button>
+              <button type="button" role="tab" aria-selected="false" data-assignment-tab="student">Student Assignment</button>
+            </div>
+            <div class="assignment-panels">
+              <section class="assignment-panel" role="tabpanel" data-assignment-panel="class">
+                <form data-class-assignment-form>
+                  <label>Programme / degree<select data-class-programme required><option value="">Select programme</option></select></label>
+                  <label>Branch / specialisation<select data-class-branch disabled><option value="">Select branch</option></select></label>
+                  <label>Semester<select data-class-semester required><option value="">Select semester</option></select></label>
+                  <label>Class / section<select name="sectionId" data-class-section required disabled><option value="">Select class</option></select></label>
+                  <label class="assignment-wide">Subject / course<select name="curriculumSubjectIds" data-class-subjects multiple required size="4" disabled aria-label="Choose one or more courses"><option value="">Select programme and semester first</option></select><small>Select one or more courses. Only database records are shown.</small></label>
+                  <button class="primary-button" type="submit">Assign to class</button>
+                </form>
+              </section>
+              <section class="assignment-panel" role="tabpanel" data-assignment-panel="teacher" hidden>
+                <form data-teacher-assignment-form>
+                  <label>Teacher<select name="teacherUserId" data-teacher-select required><option value="">Select active teacher</option></select></label>
+                  <label>Programme / degree<select data-teacher-programme required><option value="">Select programme</option></select></label>
+                  <label>Branch / specialisation<select data-teacher-branch disabled><option value="">Select branch</option></select></label>
+                  <label>Semester<select data-teacher-semester required><option value="">Select semester</option></select></label>
+                  <label>Class / section<select name="sectionId" data-teacher-section required disabled><option value="">Select class</option></select></label>
+                  <label>Subject / course<select name="curriculumSubjectIds" data-teacher-subjects multiple required size="4" disabled><option value="">Select programme and semester first</option></select></label>
+                  <button class="primary-button" type="submit">Assign to teacher</button>
+                </form>
+              </section>
+              <section class="assignment-panel" role="tabpanel" data-assignment-panel="student" hidden>
+                <form data-student-assignment-form>
+                  <label>Student<select name="studentProfileId" data-student-select required><option value="">Select student</option></select></label>
+                  <label>Subject / course<select name="curriculumSubjectId" data-student-subject required><option value="">Select student first</option></select></label>
+                  <button class="primary-button" type="submit">Assign to student</button>
+                </form>
+              </section>
+            </div>
+            <p class="teacher-message" data-assignment-message role="status" aria-live="polite"></p>
+            <div class="assignment-list"><h3>Current assignments</h3><div class="assignment-records" data-assignment-records></div></div>
+          </section>
+          <p class="teacher-message" data-subject-message role="status" aria-live="polite"></p>
+        </main>
+      </div>
+    </div>
+    <button class="sidebar-scrim" type="button" data-sidebar-close aria-label="Close navigation"></button>
+
+    <div class="drawer-backdrop subject-modal-backdrop" data-subject-modal hidden>
+      <section class="teacher-drawer subject-modal" role="dialog" aria-modal="true" aria-labelledby="subject-modal-title">
+        <header><div><span class="eyebrow">New record</span><h2 id="subject-modal-title">Add new subject</h2><p>Enter the required details below. Fields marked * are required.</p></div><button type="button" data-close-subject aria-label="Close">×</button></header>
+        <form data-subject-form>
+          <div class="drawer-fields subject-fields">
+            <label>Course name *<input name="courseName" maxlength="255" required placeholder="e.g. Data Structures"></label>
+            <label>Course code *<input name="courseCode" maxlength="60" required placeholder="e.g. CS-401"></label>
+            <label>Credits *<select name="credits" required><option value="">Select credits</option><option value="2">2 credits</option><option value="3">3 credits</option><option value="4">4 credits</option><option value="5">5 credits</option></select></label>
+            <label>Semester<select name="semesterId" data-form-semester><option value="">Select semester</option></select></label>
+            <label>Programme / degree<select name="programmeId" data-form-programme><option value="">Select programme</option></select></label>
+            <label>Branch / specialisation<select name="branchOptionId" data-form-branch disabled><option value="">Select branch or specialisation</option></select></label>
+            <label>Assign class<select name="sectionId" data-form-section disabled><option value="">Select class</option></select></label>
+            <label>Assign teacher<select name="teacherUserId" data-form-teacher disabled><option value="">Select class first</option></select></label>
+          </div>
+          <p class="form-error" data-subject-error role="alert"></p>
+          <footer><button type="button" class="secondary-button" data-close-subject>Cancel</button><button class="primary-button" type="submit">✓ &nbsp;Save record</button></footer>
+        </form>
+      </section>
+    </div>
+    <div class="detail-backdrop" data-subject-detail hidden><section class="detail-card" role="dialog" aria-modal="true" aria-labelledby="subject-detail-title"><button type="button" data-close-detail class="detail-close" aria-label="Close">×</button><span class="eyebrow">Course record</span><h2 id="subject-detail-title" data-detail-name></h2><dl data-detail-content></dl></section></div>
+  </body>
+</html>

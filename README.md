@@ -1,6 +1,6 @@
 # BMU TTMS authentication foundation
 
-This project contains the BMU authentication flows, role-protected dashboards, administrator-only teacher management, and administrator-only student and academic-structure management. The UI uses HTML, CSS, and browser-native JavaScript with an Express/MySQL backend. Password hashing uses `bcrypt`; sessions use `express-session` stored in MySQL; password reset and teacher invitation email use Nodemailer.
+This project contains the BMU authentication flows, role-protected dashboards, administrator-only teacher, student, academic-structure, and subject management, plus course assignment workspaces. The UI uses HTML, CSS, and browser-native JavaScript with an Express/MySQL backend. Password hashing uses `bcrypt`; sessions use `express-session` stored in MySQL; password reset and teacher invitation email use Nodemailer.
 
 ## Requirements
 
@@ -90,6 +90,30 @@ npm run test:students
 
 This test logs in through the real Express session and exercises the MySQL-backed creation, duplicate validation, list/search, placement update, semester calculation, academic-structure changes, and administrator-only routes. Temporary test rows are cleaned up afterward.
 
+## Subject management and course assignments
+
+Apply the additive schema migration after the student and teacher migrations:
+
+```bash
+npm run db:migrate-subjects
+```
+
+This adds curriculum placement metadata and separate class, teacher, and student course-assignment tables. It preserves the existing `subjects` and `teacher_subjects` tables and widens the subject fields. The previous global uniqueness indexes on subject name/code are replaced with non-unique indexes because a code or course name can occur in more than one curriculum placement; the new application prevents duplicates within a programme/branch/semester placement. Existing subject rows receive linked curriculum wrappers. The migration does not read or import the attached workbook.
+
+### Two-phase BMU Excel import (approval required)
+
+Generate or refresh the workbook mapping preview without connecting to MySQL:
+
+```bash
+npm run curriculum:preview -- "C:\\Users\\HP\\Downloads\\BMU_Curriculum_Subject_Master.xlsx"
+```
+
+The preview files are written to `backend/reports/curriculum-mapping-preview.md`, `.json`, and `.csv`. The script reads every worksheet and maps only the row-level `Curriculum Master` sheet; the other sheets are treated as metadata/reference. The report shows row counts, source column mappings, programme/branch mapping, status counts, duplicate and invalid checks, and sample rows. Choice-required, conditional, area-only, partial, and syllabus-placeholder records remain non-assignable. The default command never opens a MySQL connection.
+
+Do not run the importer until the mapping report has been reviewed and explicitly approved. The apply path requires the exact report hash shown in the report and `CURRICULUM_IMPORT_APPROVED=true`. It inserts only missing records in a transaction, skips existing hashes and exact duplicate source rows, never updates or deletes curriculum rows, and writes a per-record summary. No import has been performed for the supplied workbook.
+
+Run the subject and assignment integration check with `npm run test:subjects`. It creates uniquely named temporary subject/student records through the real API and database, then removes them. It does not import workbook rows.
+
 ## Verify the password-reset flow
 
 With the schema installed and `.env` pointing to a test database, run:
@@ -103,12 +127,13 @@ This integration check creates a uniquely named temporary test user, exercises t
 ## Routes
 
 - `/login`, `/forgot-password`, `/reset-password`
-- `/admin/dashboard`, `/admin/teachers`, `/admin/students`, `/admin/academic-structure`, `/teacher/dashboard`, `/teacher/profile`, `/student/dashboard`, `/change-password`
+- `/admin/dashboard`, `/admin/teachers`, `/admin/students`, `/admin/academic-structure`, `/admin/subjects`, `/teacher/dashboard`, `/teacher/profile`, `/student/dashboard`, `/change-password`
 - `POST /api/auth/login`, `POST /api/auth/logout`, `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
 - `GET /api/auth/me` returns the authenticated user's display name and verified role
 - `/api/admin/teachers` provides protected listing, statistics, subject lookup, profile lookup, creation, and invitation resend APIs
 - `/api/admin/students` provides administrator-only student profile listing, statistics, lookup, creation, and update APIs
 - `/api/admin/academic-structure` provides administrator-only programme, option, academic year/term, semester, and section configuration APIs
+- `/api/admin/subjects` provides administrator-only subject search/details/CRUD, live dropdown options, class/teacher/student assignments, effective student courses, and curriculum import preview/approval-gated execution APIs
 - `GET` and `PATCH /api/teacher/profile` read and update only the signed-in teacher's permitted profile fields
 
 Dashboard and management HTML/API routes validate sessions and roles on the server. Teacher and student accounts are redirected away from administrator pages. Teachers created by the teacher form must replace their temporary password on first login. Student login/account provisioning and timetable modules remain out of scope.
