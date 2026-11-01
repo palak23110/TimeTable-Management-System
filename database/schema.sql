@@ -195,6 +195,141 @@ CREATE TABLE IF NOT EXISTS student_profiles (
   CONSTRAINT fk_student_profiles_section FOREIGN KEY (section_id) REFERENCES academic_sections(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS buildings (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  building_name VARCHAR(120) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_buildings_name (building_name)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS rooms (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  building_id BIGINT UNSIGNED NOT NULL,
+  floor VARCHAR(80) NOT NULL,
+  room_number VARCHAR(80) NOT NULL,
+  normalized_room_number VARCHAR(80) NOT NULL,
+  room_type ENUM('classroom','stepped_classroom','lab','language_lab') NOT NULL,
+  capacity SMALLINT UNSIGNED NULL,
+  availability_status ENUM('available','maintenance') NOT NULL DEFAULT 'available',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_by_user_id BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_rooms_building_normalized_number (building_id, normalized_room_number),
+  KEY ix_rooms_filters (is_active, room_type, availability_status, building_id),
+  CONSTRAINT fk_rooms_building FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_rooms_creator FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS room_section_assignments (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  room_id BIGINT UNSIGNED NOT NULL,
+  section_id BIGINT UNSIGNED NOT NULL,
+  created_by_user_id BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_room_section_assignment (room_id, section_id),
+  KEY ix_room_section_section (section_id),
+  CONSTRAINT fk_room_section_room FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+  CONSTRAINT fk_room_section_section FOREIGN KEY (section_id) REFERENCES academic_sections(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_room_section_creator FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS working_weekdays (
+  id TINYINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  day_key ENUM('monday','tuesday','wednesday','thursday','friday','saturday','sunday') NOT NULL,
+  day_label VARCHAR(12) NOT NULL,
+  day_order TINYINT UNSIGNED NOT NULL,
+  is_working BOOLEAN NOT NULL DEFAULT FALSE,
+  start_time TIME NULL,
+  end_time TIME NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_working_weekdays_key (day_key),
+  UNIQUE KEY uq_working_weekdays_order (day_order)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS time_slots (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  slot_code VARCHAR(24) NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  status ENUM('draft','active','inactive') NOT NULL DEFAULT 'draft',
+  deleted_at TIMESTAMP NULL DEFAULT NULL,
+  created_by_user_id BIGINT UNSIGNED NULL,
+  updated_by_user_id BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_time_slots_code (slot_code),
+  KEY ix_time_slots_status_time (status, deleted_at, start_time, end_time),
+  CONSTRAINT fk_time_slots_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_time_slots_updated_by FOREIGN KEY (updated_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS time_slot_weekdays (
+  time_slot_id BIGINT UNSIGNED NOT NULL,
+  weekday_id TINYINT UNSIGNED NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (time_slot_id, weekday_id),
+  KEY ix_time_slot_weekdays_day (weekday_id, time_slot_id),
+  CONSTRAINT fk_time_slot_weekdays_slot FOREIGN KEY (time_slot_id) REFERENCES time_slots(id) ON DELETE CASCADE,
+  CONSTRAINT fk_time_slot_weekdays_day FOREIGN KEY (weekday_id) REFERENCES working_weekdays(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS academic_calendar_events (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  event_name VARCHAR(180) NOT NULL,
+  event_date DATE NOT NULL,
+  description TEXT NULL,
+  event_type ENUM('holiday','special_working_day') NOT NULL,
+  source ENUM('manual','google_calendar') NOT NULL DEFAULT 'manual',
+  approval_status ENUM('approved','pending_review','needs_review') NOT NULL DEFAULT 'approved',
+  start_time TIME NULL,
+  end_time TIME NULL,
+  source_event_id VARCHAR(255) NULL,
+  created_by_user_id BIGINT UNSIGNED NULL,
+  updated_by_user_id BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_calendar_source_event (source, source_event_id),
+  KEY ix_calendar_date_approval (event_date, approval_status, event_type),
+  KEY ix_calendar_type_date (event_type, event_date),
+  CONSTRAINT fk_calendar_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_calendar_updated_by FOREIGN KEY (updated_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS google_calendar_sync_state (
+  id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+  calendar_id VARCHAR(255) NULL,
+  account_email VARCHAR(254) NULL,
+  connection_status ENUM('not_configured','not_connected','connected') NOT NULL DEFAULT 'not_configured',
+  last_successful_sync DATETIME NULL,
+  last_sync_status ENUM('never','success','error') NOT NULL DEFAULT 'never',
+  last_sync_message VARCHAR(500) NULL,
+  imported_event_count INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_google_calendar_singleton CHECK (id = 1)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS google_calendar_events (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  google_event_id VARCHAR(255) NOT NULL,
+  event_title VARCHAR(255) NOT NULL,
+  description TEXT NULL,
+  event_date DATE NOT NULL,
+  starts_at DATETIME NULL,
+  ends_at DATETIME NULL,
+  source_updated_at DATETIME NULL,
+  source_etag VARCHAR(255) NULL,
+  source_status ENUM('current','deleted') NOT NULL DEFAULT 'current',
+  review_status ENUM('pending_review','approved_holiday','approved_special_working_day','ignored','needs_review') NOT NULL DEFAULT 'pending_review',
+  approved_calendar_event_id BIGINT UNSIGNED NULL,
+  imported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_google_calendar_event_id (google_event_id),
+  KEY ix_google_calendar_review (review_status, event_date),
+  CONSTRAINT fk_google_approved_calendar_event FOREIGN KEY (approved_calendar_event_id) REFERENCES academic_calendar_events(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS curriculum_subjects (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   subject_id BIGINT UNSIGNED NULL,

@@ -12,6 +12,8 @@ const teacherProfileRoutes = require('./routes/teacher-profile');
 const studentsRoutes = require('./routes/students');
 const academicStructureRoutes = require('./routes/academic-structure');
 const subjectRoutes = require('./routes/subjects');
+const roomRoutes = require('./routes/rooms');
+const timeSlotRoutes = require('./routes/time-slots');
 
 const app = express();
 const frontend = path.resolve(__dirname, '../frontend');
@@ -69,9 +71,19 @@ app.get('/admin/subjects', requireAuth, requireRole('administrator'), (req, res)
   res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.join(frontend, 'dashboards', 'subjects.html'));
 });
+app.get('/admin/rooms', requireAuth, requireRole('administrator'), (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(frontend, 'dashboards', 'rooms.html'));
+});
+app.get('/admin/time-slots', requireAuth, requireRole('administrator'), (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(frontend, 'dashboards', 'time-slots.html'));
+});
 app.use('/api/admin/students', requireAuth, requireRole('administrator'), studentsRoutes);
 app.use('/api/admin/academic-structure', requireAuth, requireRole('administrator'), academicStructureRoutes);
 app.use('/api/admin/subjects', requireAuth, requireRole('administrator'), subjectRoutes);
+app.use('/api/admin/rooms', requireAuth, requireRole('administrator'), roomRoutes);
+app.use('/api/admin/time-slots', requireAuth, requireRole('administrator'), timeSlotRoutes);
 const requireTeacherPage = (req, res, next) => {
   if (req.user.mustChangePassword) return res.redirect('/change-password');
   if (req.user.role !== 'teacher') {

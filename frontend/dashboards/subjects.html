@@ -29,7 +29,7 @@
           <a class="nav-item" href="/admin/academic-structure"><span>⌂</span><span>Academic structure</span></a>
           <a class="nav-item active" href="/admin/subjects" aria-current="page"><span>▤</span><span>Subjects</span></a>
           <p class="nav-group-label">Scheduling</p>
-          <button class="nav-item nav-placeholder" type="button" disabled><span>▥</span><span>Rooms &amp; labs</span></button>
+          <a class="nav-item" href="/admin/rooms">▥ <span>Rooms &amp; labs</span></a><a class="nav-item" href="/admin/time-slots">◷ <span>Working hours</span></a>
         </nav>
         <div class="help-card"><span class="help-icon">ⓘ</span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow">→</span></div>
         <div class="sidebar-profile">
@@ -42,7 +42,7 @@
       <div class="admin-main">
         <header class="admin-topbar">
           <button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false">☰</button>
-          <label class="topbar-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Search people, rooms, schedules…" disabled aria-label="Search unavailable"><kbd>⌘ K</kbd></label>
+          <label class="topbar-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Search people, rooms, schedules…" disabled aria-label="Search unavailable"></label>
           <div class="topbar-actions"><span class="view-label">Administrator view</span><span class="topbar-divider"></span><span class="topbar-profile"><span class="profile-avatar small" data-user-initials>BM</span><span><strong data-user-name></strong><small data-user-login></small></span></span></div>
         </header>
 
@@ -60,12 +60,12 @@
           </section>
 
           <section class="teacher-toolbar subject-toolbar" aria-label="Search and filter subjects">
-            <label class="teacher-search">⌕ <input type="search" data-search placeholder="Search by course name or code…" aria-label="Search subjects"><kbd>⌘ K</kbd></label>
+            <label class="teacher-search">⌕ <input type="search" data-search placeholder="Search by course name or code…" aria-label="Search subjects"></label>
             <select data-filter-programme aria-label="Filter by programme"><option value="">All programmes</option></select>
             <select data-filter-branch aria-label="Filter by branch" disabled><option value="">All branches</option></select>
             <select data-filter-semester aria-label="Filter by semester"><option value="">All semesters</option></select>
             <select data-filter-credits aria-label="Filter by credits"><option value="">All credits</option><option value="2">2 credits</option><option value="3">3 credits</option><option value="4">4 credits</option><option value="5">5 credits</option></select>
-            <button class="filter-reset" type="button" data-clear aria-label="Clear filters" title="Clear filters">☷</button>
+            <button class="filter-reset" type="button" data-clear aria-label="Clear filters" title="Clear filters">Clear</button>
           </section>
 
           <section class="teacher-table-wrap subject-table-wrap" aria-label="Subject records">
