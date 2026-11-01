@@ -1,0 +1,9 @@
+node_modules/
+coverage/
+out/
+dist/
+.env
+.env.*
+!.env.example
+TEST_CREDENTIALS.md
+npm-debug.log*

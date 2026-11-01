@@ -1,0 +1,29 @@
+.primary-button,
+.secondary-button,
+.teacher-toolbar select,
+.teacher-search input,
+.drawer-fields input {
+  font-family: inherit;
+}
+
+.primary-button,
+.secondary-button {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.teacher-toolbar select,
+.teacher-search input,
+.drawer-fields input {
+  font-size: 13px;
+}
+
+.status-pill.delivery_failed {
+  background: #fcecef;
+  color: #ab4350;
+}
+
+.resend-invitation {
+  margin-left: 8px;
+  color: #6959b5;
+}

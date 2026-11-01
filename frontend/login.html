@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1c2946"><title>Sign in | BMU TTMS</title>
+  <link rel="stylesheet" href="/css/styles.css"><script src="/js/login.js" defer></script>
+</head>
+<body>
+  <main class="auth-page">
+    <section class="login-story" aria-label="BMU Timetable Management System">
+      <a class="brand brand-light" href="/" aria-label="BMU Timetable Management System"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg></span><span class="brand-copy"><strong>BMU</strong><small>Timetable Management System</small></span></a>
+      <div class="story-content">
+        <h1>Academic Scheduling,<br>Simplified.</h1>
+        <p>Manage academic schedules, faculty assignments and classroom allocations through one centralized system.</p>
+        <div class="story-features">
+          <div class="story-feature"><span class="story-feature-icon lavender"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01"/></svg></span><span><strong>Timetable Management</strong><small>Create and manage class schedules.</small></span></div>
+          <div class="story-feature"><span class="story-feature-icon blue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.8 20c.4-3.6 2.4-5.5 6.2-5.5s5.8 1.9 6.2 5.5M16 4.8a3.5 3.5 0 0 1 0 6.7M17 14.7c2.5.5 3.9 2.3 4.2 5.3"/></svg></span><span><strong>Faculty &amp; Student Management</strong><small>Manage academic records and assignments.</small></span></div>
+          <div class="story-feature"><span class="story-feature-icon grey"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg></span><span><strong>Schedule Validation</strong><small>Identify scheduling conflicts and updates.</small></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="login-panel">
+      <div class="mobile-brand"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 9.5h16"/></svg></span><strong>BMU</strong></div>
+      <div class="login-box">
+        <header class="auth-heading"><h2>Welcome back</h2><p>Sign in to manage your academic schedule.</p></header>
+        <form id="login-form" novalidate>
+          <label class="field"><span>Login ID or email <b>*</b></span><input name="identifier" autocomplete="username" placeholder="Enter your ID or email" maxlength="254" required></label>
+          <label class="field"><span>Password <b>*</b></span><span class="password-input"><input name="password" type="password" autocomplete="current-password" placeholder="Enter your password" maxlength="128" required><button class="text-toggle" type="button" data-toggle-password>Show</button></span></label>
+          <div class="auth-options"><label class="remember"><input name="remember" type="checkbox"> Remember me</label><a href="/forgot-password">Forgot password?</a></div>
+          <p class="form-message" id="login-message" role="alert" aria-live="polite"></p>
+          <button class="submit-button" type="submit">Sign in securely</button>
+        </form>
+        <div class="security-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>Protected by role-based access control</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

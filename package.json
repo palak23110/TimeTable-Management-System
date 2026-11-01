@@ -1,0 +1,25 @@
+{
+  "name": "bmu-ttms-auth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BMU TTMS authentication foundation using Express and MySQL",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js",
+    "db:seed-admin": "node backend/database/seed-admin.js",
+    "db:seed-test-accounts": "node backend/database/seed-test-accounts.js",
+    "db:migrate-teachers": "node backend/database/migrate-teacher-management.js",
+    "test:teachers": "node --test backend/test/teacher-management.test.js",
+    "test:auth-roles": "node --test backend/test/auth-roles.test.js",
+    "test:tc05": "node --test backend/test/tc05-reset-flow.test.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "mysql2": "^3.15.0",
+    "nodemailer": "^10.3.1"
+  }
+}
