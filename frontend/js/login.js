@@ -8,7 +8,11 @@ document.querySelector('[data-toggle-password]').addEventListener('click', event
   event.currentTarget.textContent = input.type === 'password' ? 'Show' : 'Hide';
 });
 
-if (new URLSearchParams(location.search).get('reset') === 'success') {
+if (new URLSearchParams(location.search).get('invitation') === 'accepted') {
+  message.textContent = 'Invitation accepted. Sign in with the credentials from your invitation email.';
+  message.classList.add('success');
+  message.setAttribute('role', 'status');
+} else if (new URLSearchParams(location.search).get('reset') === 'success') {
   message.textContent = 'Password updated. Sign in with your new password.';
   message.classList.add('success');
   message.setAttribute('role', 'status');

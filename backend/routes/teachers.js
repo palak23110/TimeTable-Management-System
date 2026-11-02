@@ -1,10 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const { createHash, randomBytes } = require('node:crypto');
 const pool = require('../database/pool');
-const { generateTeacherTemporaryPassword } = require('../services/teacher-password');
 
 const router = express.Router();
 const pageSize = 8;
+const hashInvitationToken = (token) => createHash('sha256').update(token).digest('hex');
 
 router.use((req, res, next) => {
   if (['POST', 'PUT', 'PATCH'].includes(req.method) && !req.is('application/json')) {
@@ -411,6 +412,31 @@ router.put('/:userId/subjects', async (req, res, next) => {
       return res.status(404).json({ error: 'Teacher not found.' });
     }
 
+    const [currentMappings] = await connection.execute(
+      'SELECT subject_id AS subjectId FROM teacher_subjects WHERE teacher_user_id = ? FOR UPDATE',
+      [req.params.userId],
+    );
+    const desired = new Set(normalizedIds);
+    const removed = currentMappings.map((row) => Number(row.subjectId)).filter((subjectId) => !desired.has(subjectId));
+    if (removed.length) {
+      const placeholders = removed.map(() => '?').join(', ');
+      const [dependents] = await connection.execute(`
+        SELECT s.subject_name AS subjectName, sec.section_name AS sectionName,
+          sem.label AS semesterName, ay.label AS academicYearLabel
+        FROM teacher_course_assignments a
+        JOIN subjects s ON s.id = a.subject_id JOIN academic_sections sec ON sec.id = a.section_id
+        LEFT JOIN academic_semesters sem ON sem.id = a.semester_id
+        LEFT JOIN academic_years ay ON ay.id = a.academic_year_id
+        WHERE a.teacher_user_id = ? AND a.subject_id IN (${placeholders})
+        ORDER BY s.subject_name, sec.section_name LIMIT 1 FOR UPDATE
+      `, [req.params.userId, ...removed]);
+      if (dependents.length) {
+        const allocation = dependents[0];
+        await connection.rollback();
+        return res.status(409).json({ error: `Cannot remove ${allocation.subjectName} from this teacher's subject mappings: an existing teaching allocation is recorded for ${allocation.sectionName}, ${allocation.semesterName || 'unknown semester'} (${allocation.academicYearLabel || 'legacy/unassigned academic year'}). Reassign or remove the teaching allocation before deleting this mapping.` });
+      }
+    }
+
     if (normalizedIds.length) {
       const placeholders = normalizedIds.map(() => '?').join(', ');
       const [subjects] = await connection.execute(`
@@ -428,17 +454,16 @@ router.put('/:userId/subjects', async (req, res, next) => {
       }
     }
 
-    await connection.execute(
-      'DELETE FROM teacher_subjects WHERE teacher_user_id = ?',
-      [req.params.userId],
+    if (removed.length) await connection.execute(
+      `DELETE FROM teacher_subjects WHERE teacher_user_id = ? AND subject_id IN (${removed.map(() => '?').join(', ')})`,
+      [req.params.userId, ...removed],
     );
-    if (normalizedIds.length) {
-      const tuples = normalizedIds.map(() => '(?, ?)').join(', ');
-      const values = normalizedIds.flatMap((subjectId) => [req.params.userId, subjectId]);
-      await connection.execute(
-        `INSERT INTO teacher_subjects (teacher_user_id, subject_id) VALUES ${tuples}`,
-        values,
-      );
+    const currentSet = new Set(currentMappings.map((row) => Number(row.subjectId)));
+    const added = normalizedIds.filter((subjectId) => !currentSet.has(subjectId));
+    if (added.length) {
+      const tuples = added.map(() => '(?, ?)').join(', ');
+      await connection.execute(`INSERT INTO teacher_subjects (teacher_user_id, subject_id) VALUES ${tuples}`,
+        added.flatMap((subjectId) => [req.params.userId, subjectId]));
     }
     await connection.commit();
 
@@ -507,7 +532,8 @@ router.post('/', async (req, res, next) => {
       return res.status(409).json({ error: 'A teacher already uses that Teacher ID.' });
     }
 
-    const temporaryPassword = generateTeacherTemporaryPassword(email);
+    const invitationToken = randomBytes(32).toString('base64url');
+    const temporaryPassword = randomBytes(18).toString('base64url');
     const passwordHash = await bcrypt.hash(temporaryPassword, 12);
     const connection = await pool.getConnection();
     let userId;
@@ -521,9 +547,11 @@ router.post('/', async (req, res, next) => {
       userId = created.insertId;
 
       await connection.execute(`
-        INSERT INTO teacher_profiles (user_id, teacher_id, contact_number, invitation_pending)
-        VALUES (?, ?, ?, TRUE)
+        INSERT INTO teacher_profiles (user_id, teacher_id, contact_number, invitation_pending, invitation_setup_required)
+        VALUES (?, ?, ?, TRUE, TRUE)
       `, [userId, teacherId, contactNumber]);
+      await connection.execute(`INSERT INTO user_invitation_tokens (user_id, token_hash, expires_at)
+        VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 24 HOUR))`, [userId, hashInvitationToken(invitationToken)]);
       await connection.commit();
     } catch (error) {
       await connection.rollback();
@@ -539,14 +567,13 @@ router.post('/', async (req, res, next) => {
       email,
       name,
       teacherId,
+      invitationToken,
       temporaryPassword,
     });
 
     if (!invitationSent) {
-      await pool.execute(
-        'UPDATE teacher_profiles SET invitation_pending = FALSE WHERE user_id = ?',
-        [userId],
-      );
+      await pool.execute('UPDATE teacher_profiles SET invitation_pending = FALSE WHERE user_id = ?', [userId]);
+      await pool.execute('DELETE FROM user_invitation_tokens WHERE user_id = ? AND accepted_at IS NULL', [userId]);
     }
 
     res.status(201).json({
@@ -572,8 +599,9 @@ router.post('/:userId/resend-invitation', async (req, res, next) => {
 
   const connection = await pool.getConnection();
   let teacher;
-  let temporaryPassword;
-  let passwordHash;
+  const invitationToken = randomBytes(32).toString('base64url');
+  const temporaryPassword = randomBytes(18).toString('base64url');
+  const passwordHash = await bcrypt.hash(temporaryPassword, 12);
 
   try {
     await connection.beginTransaction();
@@ -581,6 +609,7 @@ router.post('/:userId/resend-invitation', async (req, res, next) => {
       SELECT u.id, u.name, u.email, u.is_active AS isActive,
         u.must_change_password AS mustChangePassword,
         u.password_hash AS currentPasswordHash,
+        p.invitation_setup_required AS invitationSetupRequired,
         p.teacher_id AS teacherId
       FROM users u
       JOIN teacher_profiles p ON p.user_id = u.id
@@ -590,23 +619,20 @@ router.post('/:userId/resend-invitation', async (req, res, next) => {
     `, [req.params.userId]);
 
     teacher = rows[0];
-    if (!teacher || !teacher.isActive) {
+    if (!teacher) {
       await connection.rollback();
       return res.status(404).json({ error: 'Active teacher account not found.' });
     }
 
-    if (!teacher.mustChangePassword) {
+    if (!teacher.invitationSetupRequired) {
       await connection.rollback();
-      return res.status(409).json({ error: 'This teacher no longer has a temporary password.' });
+      return res.status(409).json({ error: 'This account is not awaiting invitation setup.' });
     }
 
-    temporaryPassword = generateTeacherTemporaryPassword(teacher.email);
-    passwordHash = await bcrypt.hash(temporaryPassword, 12);
-    await connection.execute(`
-      UPDATE users
-      SET password_hash = ?, must_change_password = TRUE
-      WHERE id = ?
-    `, [passwordHash, teacher.id]);
+    await connection.execute('UPDATE users SET password_hash = ?, must_change_password = TRUE, is_active = TRUE WHERE id = ?', [passwordHash, teacher.id]);
+    await connection.execute('DELETE FROM user_invitation_tokens WHERE user_id = ? AND accepted_at IS NULL', [teacher.id]);
+    await connection.execute(`INSERT INTO user_invitation_tokens (user_id, token_hash, expires_at)
+      VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 24 HOUR))`, [teacher.id, hashInvitationToken(invitationToken)]);
     await connection.execute(
       'UPDATE teacher_profiles SET invitation_pending = TRUE WHERE user_id = ?',
       [teacher.id],
@@ -623,19 +649,17 @@ router.post('/:userId/resend-invitation', async (req, res, next) => {
     email: teacher.email,
     name: teacher.name,
     teacherId: teacher.teacherId,
+    invitationToken,
     temporaryPassword,
   });
 
   if (!invitationSent) {
-    await pool.execute(`
-      UPDATE users
-      SET password_hash = ?
-      WHERE id = ? AND password_hash = ?
-    `, [teacher.currentPasswordHash, teacher.id, passwordHash]);
+    await pool.execute('UPDATE users SET password_hash = ?, must_change_password = TRUE WHERE id = ?', [teacher.currentPasswordHash, teacher.id]);
     await pool.execute(
       'UPDATE teacher_profiles SET invitation_pending = FALSE WHERE user_id = ?',
       [teacher.id],
     );
+    await pool.execute('DELETE FROM user_invitation_tokens WHERE user_id = ? AND accepted_at IS NULL', [teacher.id]);
   }
 
   res.json({ invitationSent });

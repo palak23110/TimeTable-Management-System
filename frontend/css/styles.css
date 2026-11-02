@@ -550,3 +550,19 @@ a {
         font-size: 26px;
     }
 }
+.validation-toast {
+  position: fixed;
+  z-index: 1200;
+  right: 24px;
+  bottom: 24px;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #fff;
+  color: #26324e;
+  box-shadow: 0 12px 36px rgba(16, 27, 52, .2);
+  border-left: 4px solid #b33442;
+  font-size: 14px;
+}
+.validation-toast.success { border-left-color: #27724f; }
+.validation-toast[hidden] { display: none; }

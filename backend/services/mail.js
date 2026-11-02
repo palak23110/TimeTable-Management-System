@@ -54,14 +54,14 @@ async function sendPasswordResetEmail(email, token) {
   });
 }
 
-async function sendTeacherInvitationEmail({ email, name, teacherId, temporaryPassword }) {
+async function sendTeacherInvitationEmail({ email, name, teacherId, invitationToken, temporaryPassword }) {
   const { transporter, from, appBaseUrl } = createSmtpTransporter();
-  const loginUrl = `${appBaseUrl}/login`;
+  const invitationUrl = `${appBaseUrl}/accept-invitation?token=${encodeURIComponent(invitationToken)}`;
   const safeName = escapeHtml(name);
   const safeTeacherId = escapeHtml(teacherId);
   const safeEmail = escapeHtml(email);
   const safeTemporaryPassword = escapeHtml(temporaryPassword);
-  const safeLoginUrl = escapeHtml(loginUrl);
+  const safeInvitationUrl = escapeHtml(invitationUrl);
 
   await transporter.sendMail({
     from,
@@ -74,9 +74,9 @@ async function sendTeacherInvitationEmail({ email, name, teacherId, temporaryPas
       `Teacher ID: ${teacherId}`,
       `Login ID: ${email}`,
       `Temporary password: ${temporaryPassword}`,
-      '',
-      `Sign in at ${loginUrl}`,
-      'For your security, change the temporary password after your first login.',
+      'Accept this invitation before signing in:',
+      invitationUrl,
+      'The link expires in 24 hours and can only be used once.',
       '',
       'BMU Timetable Management System',
     ].join('\n'),
@@ -89,16 +89,16 @@ async function sendTeacherInvitationEmail({ email, name, teacherId, temporaryPas
           </div>
           <div style="padding:30px">
             <p style="margin:0 0 16px">Hello ${safeName},</p>
-            <p style="margin:0 0 20px;line-height:1.6">Your teacher account has been created. Use the credentials below to sign in.</p>
+            <p style="margin:0 0 20px;line-height:1.6">Your teacher account has been created. First accept the invitation, then sign in with the credentials below.</p>
             <div style="padding:18px;background:#f7f7fc;border:1px solid #e7e3fb;border-radius:8px;line-height:1.8">
               <div><strong>Teacher ID:</strong> ${safeTeacherId}</div>
               <div><strong>Login ID:</strong> ${safeEmail}</div>
               <div><strong>Temporary password:</strong> ${safeTemporaryPassword}</div>
             </div>
             <p style="margin:22px 0">
-              <a href="${safeLoginUrl}" style="display:inline-block;padding:12px 20px;border-radius:7px;background:#273553;color:#ffffff;text-decoration:none;font-weight:700">Sign in to BMU TTMS</a>
+              <a href="${safeInvitationUrl}" style="display:inline-block;padding:12px 20px;border-radius:7px;background:#273553;color:#ffffff;text-decoration:none;font-weight:700">Review invitation</a>
             </p>
-            <p style="margin:0;line-height:1.6">For your security, you must change the temporary password after your first login.</p>
+            <p style="margin:0;line-height:1.6">After you accept, sign in using the login ID and temporary password above. This invitation expires in 24 hours and can only be accepted once.</p>
           </div>
           <div style="padding:16px 30px;background:#fafbfe;border-top:1px solid #e8ebf2;color:#7b879d;font-size:12px">BMU Timetable Management System</div>
         </div>

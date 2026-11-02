@@ -37,14 +37,14 @@ test('administrator teacher flow covers account creation, invitation, resend and
   let secondSubjectId;
   let studentCookie;
   let shouldFailDelivery = false;
-  const deliveredPasswords = [];
+  const deliveredInvitations = [];
   const email = `tc-teacher-${Date.now()}@example.invalid`;
   const teacherId = `TCH-${String(Date.now()).slice(-8)}`;
 
   app.locals.sendTeacherInvitationEmail = async (invitation) => {
     assert.equal(invitation.email, email);
     if (shouldFailDelivery) throw new Error('Mock SMTP failure');
-    deliveredPasswords.push(invitation.temporaryPassword);
+    deliveredInvitations.push({ token: invitation.invitationToken, temporaryPassword: invitation.temporaryPassword });
   };
 
   try {
@@ -141,9 +141,9 @@ test('administrator teacher flow covers account creation, invitation, resend and
     assert.equal(firstResend.status, 200);
     assert.equal((await firstResend.json()).invitationSent, true);
 
-    const firstTemporaryPassword = deliveredPasswords.at(-1);
-    assert.match(firstTemporaryPassword, new RegExp(`^${email.slice(0, 4)}\\d{4}$`));
-    assert.equal(firstTemporaryPassword.length, 8);
+    const firstInvitation = deliveredInvitations.at(-1);
+    const firstInvitationToken = firstInvitation.token;
+    assert.match(firstInvitationToken, /^[A-Za-z0-9_-]{43}$/);
     assert.equal(created.temporaryPassword, undefined);
 
     const [accounts] = await pool.execute(`
@@ -159,8 +159,8 @@ test('administrator teacher flow covers account creation, invitation, resend and
     assert.equal(Number(account.isActive), 1);
     assert.equal(Number(account.mustChangePassword), 1);
     assert.equal(await bcrypt.getRounds(account.passwordHash), 12);
-    assert.equal(await bcrypt.compare(firstTemporaryPassword, account.passwordHash), true);
-    assert.notEqual(account.passwordHash, firstTemporaryPassword);
+    assert.equal(await bcrypt.compare(firstInvitation.temporaryPassword, account.passwordHash), true);
+    assert.equal(await bcrypt.compare(firstInvitationToken, account.passwordHash), false);
 
     const [profiles] = await pool.execute(`
       SELECT teacher_id AS teacherId, contact_number AS contactNumber,
@@ -348,11 +348,7 @@ test('administrator teacher flow covers account creation, invitation, resend and
       'SELECT password_hash AS passwordHash FROM users WHERE id = ?',
       [createdId],
     );
-    assert.equal(
-      await bcrypt.compare(firstTemporaryPassword, afterFailedResend[0].passwordHash),
-      true,
-      'failed resend keeps the last delivered temporary password valid',
-    );
+    assert.equal(await bcrypt.compare(firstInvitation.temporaryPassword, afterFailedResend[0].passwordHash), true);
 
     shouldFailDelivery = false;
     const successfulResend = await post(
@@ -362,8 +358,24 @@ test('administrator teacher flow covers account creation, invitation, resend and
     );
     assert.equal(successfulResend.status, 200);
     assert.equal((await successfulResend.json()).invitationSent, true);
-    const currentTemporaryPassword = deliveredPasswords.at(-1);
-    assert.notEqual(currentTemporaryPassword, firstTemporaryPassword);
+    const currentInvitation = deliveredInvitations.at(-1);
+    const currentInvitationToken = currentInvitation.token;
+    assert.notEqual(currentInvitationToken, firstInvitationToken);
+
+    const invalidInvitation = await post('/api/auth/accept-invitation', {
+      token: 'invalid-token', password: 'NewPass123', confirmPassword: 'NewPass123',
+    });
+    assert.equal(invalidInvitation.status, 400, 'invalid invitation token is rejected');
+    await pool.execute('UPDATE user_invitation_tokens SET expires_at = DATE_SUB(UTC_TIMESTAMP(), INTERVAL 1 MINUTE) WHERE user_id = ? AND accepted_at IS NULL', [createdId]);
+    const expiredInvitation = await post('/api/auth/accept-invitation', {
+      token: currentInvitationToken, password: 'NewPass123', confirmPassword: 'NewPass123',
+    });
+    assert.equal(expiredInvitation.status, 400, 'expired invitation token is rejected');
+    const replacementInvitation = await post(`/api/admin/teachers/${createdId}/resend-invitation`, {}, adminCookie);
+    assert.equal(replacementInvitation.status, 200);
+    assert.equal((await replacementInvitation.json()).invitationSent, true);
+    const validInvitation = deliveredInvitations.at(-1);
+    const validInvitationToken = validInvitation.token;
 
     const [resentAccounts] = await pool.execute(`
       SELECT password_hash AS passwordHash
@@ -372,39 +384,27 @@ test('administrator teacher flow covers account creation, invitation, resend and
     `, [createdId]);
     account = resentAccounts[0];
     assert.equal(await bcrypt.getRounds(account.passwordHash), 12);
-    assert.equal(await bcrypt.compare(currentTemporaryPassword, account.passwordHash), true);
+    assert.equal(await bcrypt.compare(currentInvitationToken, account.passwordHash), false);
 
     const stats = await (await get('/api/admin/teachers/stats', adminCookie)).json();
     assert.ok(stats.stats.total >= 1);
 
-    const teacherLogin = await post('/api/auth/login', {
-      identifier: email,
-      password: currentTemporaryPassword,
-    });
+    const invitationPage = await get(`/accept-invitation?token=${encodeURIComponent(validInvitationToken)}`);
+    assert.equal(invitationPage.status, 200);
+    const accepted = await post('/api/auth/accept-invitation', { token: validInvitationToken });
+    assert.equal(accepted.status, 200, await accepted.clone().text());
+    assert.equal((await accepted.json()).redirectTo, '/login?invitation=accepted');
+    assert.equal(accepted.headers.get('set-cookie'), null, 'invitation acceptance leaves sign-in to the existing login form');
+    const teacherLogin = await post('/api/auth/login', { identifier: email, password: validInvitation.temporaryPassword });
     assert.equal(teacherLogin.status, 200);
-    assert.equal((await teacherLogin.json()).redirectTo, '/change-password');
+    assert.equal((await teacherLogin.json()).redirectTo, '/teacher/dashboard');
     teacherCookie = teacherLogin.headers.get('set-cookie')?.split(';')[0];
-    assert.equal((await get('/teacher/dashboard', teacherCookie)).status, 302);
-    assert.equal((await get('/change-password', teacherCookie)).status, 200);
-
-    const invalidChange = await post('/api/auth/change-password', {
-      password: 'short',
-      confirmPassword: 'short',
-    }, teacherCookie);
-    assert.equal(invalidChange.status, 400);
-
-    const unchangedPassword = await post('/api/auth/change-password', {
-      password: currentTemporaryPassword,
-      confirmPassword: currentTemporaryPassword,
-    }, teacherCookie);
-    assert.equal(unchangedPassword.status, 400);
-
-    const changedPassword = await post('/api/auth/change-password', {
-      password: 'NewPass123',
-      confirmPassword: 'NewPass123',
-    }, teacherCookie);
-    assert.equal(changedPassword.status, 200, await changedPassword.clone().text());
-    assert.equal((await changedPassword.json()).redirectTo, '/teacher/dashboard');
+    assert.ok(teacherCookie, 'normal sign-in after invitation creates the authenticated session');
+    assert.equal((await get('/teacher/dashboard', teacherCookie)).status, 200);
+    assert.equal((await get('/api/teacher/profile', teacherCookie)).status, 200);
+    assert.equal((await get('/teacher/dashboard', teacherCookie)).status, 200, 'dashboard refresh keeps the invitation session');
+    const replay = await post('/api/auth/accept-invitation', { token: validInvitationToken });
+    assert.equal(replay.status, 400, 'accepted invitation cannot be replayed');
 
     const [updatedRows] = await pool.execute(`
       SELECT password_hash AS passwordHash, must_change_password AS mustChangePassword
@@ -412,14 +412,16 @@ test('administrator teacher flow covers account creation, invitation, resend and
       WHERE id = ?
     `, [createdId]);
     assert.equal(Number(updatedRows[0].mustChangePassword), 0);
-    assert.equal(await bcrypt.compare('NewPass123', updatedRows[0].passwordHash), true);
+    assert.equal(await bcrypt.compare(validInvitation.temporaryPassword, updatedRows[0].passwordHash), true);
+    const normalLogin = await post('/api/auth/login', {
+      identifier: email,
+      password: validInvitation.temporaryPassword,
+    });
+    assert.equal(normalLogin.status, 200);
+    assert.equal((await normalLogin.json()).redirectTo, '/teacher/dashboard');
     assert.equal((await post('/api/auth/login', {
       identifier: email,
-      password: 'NewPass123',
-    })).status, 200);
-    assert.equal((await post('/api/auth/login', {
-      identifier: email,
-      password: currentTemporaryPassword,
+      password: validInvitationToken,
     })).status, 401);
 
     const teacherProfilePage = await get('/teacher/profile', teacherCookie);

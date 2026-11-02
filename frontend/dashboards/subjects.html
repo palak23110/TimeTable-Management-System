@@ -97,6 +97,7 @@
               <section class="assignment-panel" role="tabpanel" data-assignment-panel="teacher" hidden>
                 <form data-teacher-assignment-form>
                   <label>Teacher<select name="teacherUserId" data-teacher-select required><option value="">Select active teacher</option></select></label>
+                  <label>Academic year<select name="academicYearId" data-teacher-year required><option value="">Select academic year</option></select></label>
                   <label>Programme / degree<select data-teacher-programme required><option value="">Select programme</option></select></label>
                   <label>Branch / specialisation<select data-teacher-branch disabled><option value="">Select branch</option></select></label>
                   <label>Semester<select data-teacher-semester required><option value="">Select semester</option></select></label>
@@ -135,6 +136,7 @@
             <label>Branch / specialisation<select name="branchOptionId" data-form-branch disabled><option value="">Select branch or specialisation</option></select></label>
             <label>Assign class<select name="sectionId" data-form-section disabled><option value="">Select class</option></select></label>
             <label>Assign teacher<select name="teacherUserId" data-form-teacher disabled><option value="">Select class first</option></select></label>
+            <label data-form-year-wrap hidden>Academic year<select name="academicYearId" data-form-year><option value="">Select academic year</option></select></label>
           </div>
           <p class="form-error" data-subject-error role="alert"></p>
           <footer><button type="button" class="secondary-button" data-close-subject>Cancel</button><button class="primary-button" type="submit">✓ &nbsp;Save record</button></footer>

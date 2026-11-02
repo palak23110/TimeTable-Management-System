@@ -60,6 +60,21 @@
     message.className = `teacher-message${type ? ` ${type}` : ''}`;
   }
 
+  function showValidationToast(text, type = 'error') {
+    let toast = document.querySelector('[data-validation-toast]');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.dataset.validationToast = '';
+      toast.setAttribute('role', 'alert');
+      document.body.append(toast);
+    }
+    toast.textContent = text;
+    toast.className = `validation-toast ${type}`;
+    toast.hidden = false;
+    clearTimeout(toast.dismissTimer);
+    toast.dismissTimer = setTimeout(() => { toast.hidden = true; }, 6000);
+  }
+
   async function loadStats() {
     const { stats } = await request('/api/admin/teachers/stats');
 
@@ -305,6 +320,7 @@
       editForm.elements.name.focus();
     } catch (error) {
       errorBox.textContent = error.message;
+      showValidationToast(error.message);
     }
   }
 
@@ -516,11 +532,13 @@
       });
       setModalOpen(subjectDrawer, false);
       setMessage('Subject assignments updated successfully.', 'success');
+      showValidationToast('Subject assignments updated successfully.', 'success');
       await refresh();
       const detail = document.querySelector('[data-detail]');
       if (!detail.hidden && detail.dataset.teacherId === teacherId) await showDetails(teacherId);
     } catch (error) {
       errorBox.textContent = error.message;
+      showValidationToast(error.message);
     } finally {
       submitButton.disabled = false;
     }
@@ -550,6 +568,7 @@
       await refresh();
     } catch (error) {
       errorBox.textContent = error.message;
+      showValidationToast(error.message);
     } finally {
       submitButton.disabled = false;
     }

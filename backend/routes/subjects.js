@@ -91,6 +91,9 @@ router.get('/options', async (req, res, next) => {
       SELECT id, semester_number AS semesterNumber, label, is_active AS isActive
       FROM academic_semesters ORDER BY semester_number
     `);
+    const [academicYears] = await pool.execute(`
+      SELECT id, label FROM academic_years ORDER BY start_year DESC
+    `);
     const [sections] = await pool.execute(`
       SELECT s.id, s.programme_id AS programmeId, s.branch_option_id AS branchOptionId,
         s.section_name AS name, s.is_active AS isActive, p.name AS programmeName,
@@ -133,7 +136,7 @@ router.get('/options', async (req, res, next) => {
         AND (? IS NULL OR c.semester_id = ?)
       ORDER BY c.course_name
     `, [programmeId, programmeId, semesterId, semesterId]);
-    res.json({ programmes, branches, semesters, sections, teachers, students, curriculumSubjects });
+    res.json({ programmes, branches, semesters, academicYears, sections, teachers, students, curriculumSubjects });
   } catch (error) {
     next(error);
   }
@@ -161,7 +164,8 @@ router.get('/assignments', async (req, res, next) => {
     if (type === 'teacher') {
       const [assignments] = await pool.execute(`
         SELECT a.id, a.teacher_user_id AS teacherUserId, a.section_id AS sectionId,
-          a.curriculum_subject_id AS curriculumSubjectId, u.name AS teacherName,
+          a.curriculum_subject_id AS curriculumSubjectId, a.academic_year_id AS academicYearId,
+          ay.label AS academicYearLabel, u.name AS teacherName,
           tp.teacher_id AS teacherId, c.course_name AS courseName, c.course_code AS courseCode,
           p.name AS programmeName, sec.section_name AS sectionName, sem.label AS semesterName
         FROM teacher_course_assignments a
@@ -171,6 +175,7 @@ router.get('/assignments', async (req, res, next) => {
         JOIN academic_sections sec ON sec.id = a.section_id
         JOIN academic_programmes p ON p.id = sec.programme_id
         LEFT JOIN academic_semesters sem ON sem.id = c.semester_id
+        LEFT JOIN academic_years ay ON ay.id = a.academic_year_id
         ORDER BY u.name, c.course_name
       `);
       return res.json({ assignments });
@@ -228,7 +233,7 @@ router.get('/assignments/effective/:studentProfileId', async (req, res, next) =>
 
 async function getAssignableCurriculum(connection, curriculumSubjectId) {
   const [rows] = await connection.execute(`
-    SELECT c.id, c.programme_id AS programmeId, c.branch_option_id AS branchOptionId,
+    SELECT c.id, c.course_name AS courseName, c.programme_id AS programmeId, c.branch_option_id AS branchOptionId,
       c.semester_id AS semesterId, c.record_status AS recordStatus, c.subject_id AS subjectId
     FROM curriculum_subjects c
     JOIN subjects s ON s.id = c.subject_id AND s.is_active = 1
@@ -290,8 +295,9 @@ router.post('/assignments/teacher', async (req, res, next) => {
   const teacherUserId = id(req.body?.teacherUserId);
   const sectionId = id(req.body?.sectionId);
   const semesterId = id(req.body?.semesterId);
+  const academicYearId = id(req.body?.academicYearId);
   const subjectIds = uniqueIds(req.body?.curriculumSubjectIds);
-  if (!teacherUserId || !sectionId || !semesterId || !subjectIds) return badRequest(res, 'Select an active teacher, semester, class, and one or more courses.');
+  if (!teacherUserId || !sectionId || !semesterId || !academicYearId || !subjectIds) return badRequest(res, 'Select an academic year, active teacher, semester, class, and one or more courses.');
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -303,23 +309,50 @@ router.post('/assignments/teacher', async (req, res, next) => {
       await connection.rollback();
       return badRequest(res, 'The selected teacher is unavailable.', 404);
     }
+    const [years] = await connection.execute('SELECT id FROM academic_years WHERE id = ? FOR UPDATE', [academicYearId]);
+    if (!years.length) { await connection.rollback(); return badRequest(res, 'The selected academic year is unavailable.', 409); }
+    // Serializes competing allocations for this teacher/class/year/semester.
+    await connection.execute('SELECT id FROM academic_sections WHERE id = ? FOR UPDATE', [sectionId]);
     for (const curriculumSubjectId of subjectIds) {
       const curriculum = await getAssignableCurriculum(connection, curriculumSubjectId);
       if (!curriculum || Number(curriculum.semesterId) !== semesterId || !(await validateSectionScope(connection, curriculum, sectionId))) {
         await connection.rollback();
         return badRequest(res, 'One or more courses do not belong to the selected class.', 409);
       }
+      const [mapping] = await connection.execute(`
+        SELECT subject_id FROM teacher_subjects WHERE teacher_user_id = ? AND subject_id = ? FOR UPDATE
+      `, [teacherUserId, curriculum.subjectId]);
+      if (!mapping.length) {
+        await connection.rollback();
+        return badRequest(res, `Allocation not allowed: the selected teacher is not mapped to ${curriculum.courseName || 'this subject'}. Add the Teacher–Subject Mapping before creating this allocation.`, 409);
+      }
+      const [conflicts] = await connection.execute(`
+        SELECT c.course_name AS courseName FROM teacher_course_assignments a
+        JOIN curriculum_subjects c ON c.id = a.curriculum_subject_id
+        WHERE a.teacher_user_id = ? AND a.section_id = ? AND a.academic_year_id = ?
+          AND a.semester_id = ? AND a.curriculum_subject_id <> ? LIMIT 1
+      `, [teacherUserId, sectionId, academicYearId, semesterId, curriculumSubjectId]);
+      if (conflicts.length) {
+        const [context] = await connection.execute(`
+          SELECT u.name AS teacherName, sec.section_name AS sectionName, sem.label AS semesterName, ay.label AS yearLabel
+          FROM users u JOIN academic_sections sec ON sec.id = ?
+          JOIN academic_semesters sem ON sem.id = ? JOIN academic_years ay ON ay.id = ? WHERE u.id = ?
+        `, [sectionId, semesterId, academicYearId, teacherUserId]);
+        const x = context[0] || {};
+        await connection.rollback();
+        return badRequest(res, `Allocation not allowed: ${x.teacherName || 'This teacher'} is already assigned to ${conflicts[0].courseName} for ${x.sectionName || 'this class'} in ${x.semesterName || `Semester ${semesterId}`} (${x.yearLabel || 'selected academic year'}). A teacher cannot be assigned two different subjects to the same class and section in the same semester.`, 409);
+      }
       await connection.execute(`
         INSERT INTO teacher_course_assignments (
-          teacher_user_id, section_id, curriculum_subject_id, created_by_user_id
-        ) VALUES (?, ?, ?, ?)
-      `, [teacherUserId, sectionId, curriculumSubjectId, req.user.id]);
+          teacher_user_id, section_id, curriculum_subject_id, academic_year_id, semester_id, subject_id, created_by_user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      `, [teacherUserId, sectionId, curriculumSubjectId, academicYearId, semesterId, curriculum.subjectId, req.user.id]);
     }
     await connection.commit();
     res.status(201).json({ message: 'Teacher course assignment saved.', count: subjectIds.length });
   } catch (error) {
     await connection.rollback();
-    if (error.code === 'ER_DUP_ENTRY') return badRequest(res, 'One or more courses are already assigned to this teacher and class.', 409);
+    if (error.code === 'ER_DUP_ENTRY') return badRequest(res, 'Allocation not allowed: this teacher already has an allocation for this class, semester, and academic year. Review the existing allocation before saving.', 409);
     next(error);
   } finally {
     connection.release();
@@ -543,6 +576,11 @@ router.post('/', async (req, res, next) => {
       await connection.rollback();
       return badRequest(res, values.error, values.status || 400);
     }
+    const academicYearId = values.teacherUserId ? id(req.body?.academicYearId) : null;
+    if (values.teacherUserId && !academicYearId) {
+      await connection.rollback();
+      return badRequest(res, 'Select an academic year for the teacher allocation.');
+    }
     const [createdSubject] = await connection.execute(
       'INSERT INTO subjects (subject_code, subject_name, is_active) VALUES (?, ?, TRUE)',
       [values.courseCode, values.courseName],
@@ -562,7 +600,24 @@ router.post('/', async (req, res, next) => {
       }
       await connection.execute('INSERT INTO class_course_assignments (section_id, curriculum_subject_id, created_by_user_id) VALUES (?, ?, ?)', [values.sectionId, createdRecord.insertId, req.user.id]);
       if (values.teacherUserId) {
-        await connection.execute('INSERT INTO teacher_course_assignments (teacher_user_id, section_id, curriculum_subject_id, created_by_user_id) VALUES (?, ?, ?, ?)', [values.teacherUserId, values.sectionId, createdRecord.insertId, req.user.id]);
+        const [yearRows] = await connection.execute('SELECT id FROM academic_years WHERE id = ? FOR UPDATE', [academicYearId]);
+        const [mapping] = await connection.execute('SELECT subject_id FROM teacher_subjects WHERE teacher_user_id = ? AND subject_id = ? FOR UPDATE', [values.teacherUserId, createdSubject.insertId]);
+        if (!yearRows.length || !mapping.length) {
+          await connection.rollback();
+          return badRequest(res, !yearRows.length ? 'The selected academic year is unavailable.' : `Allocation not allowed: the selected teacher is not mapped to ${values.courseName}. Add the Teacher–Subject Mapping before creating this allocation.`, 409);
+        }
+        await connection.execute('SELECT id FROM academic_sections WHERE id = ? FOR UPDATE', [values.sectionId]);
+        const [conflicts] = await connection.execute(`
+          SELECT c.course_name AS courseName FROM teacher_course_assignments a
+          JOIN curriculum_subjects c ON c.id = a.curriculum_subject_id
+          WHERE a.teacher_user_id = ? AND a.section_id = ? AND a.academic_year_id = ? AND a.semester_id = ?
+          LIMIT 1
+        `, [values.teacherUserId, values.sectionId, academicYearId, values.semesterId]);
+        if (conflicts.length) {
+          await connection.rollback();
+          return badRequest(res, `Allocation not allowed: this teacher is already assigned to ${conflicts[0].courseName} for the selected class, semester, and academic year. A teacher cannot be assigned two different subjects to the same class and section in the same semester.`, 409);
+        }
+        await connection.execute('INSERT INTO teacher_course_assignments (teacher_user_id, section_id, curriculum_subject_id, academic_year_id, semester_id, subject_id, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [values.teacherUserId, values.sectionId, createdRecord.insertId, academicYearId, values.semesterId, createdSubject.insertId, req.user.id]);
       }
     } else if (values.teacherUserId) {
       await connection.rollback();
@@ -572,6 +627,7 @@ router.post('/', async (req, res, next) => {
     res.status(201).json({ message: 'Subject saved.', id: createdRecord.insertId });
   } catch (error) {
     await connection.rollback();
+    if (error.code === 'ER_DUP_ENTRY') return badRequest(res, 'Allocation not allowed: this teacher already has an allocation for this class, semester, and academic year.', 409);
     next(error);
   } finally {
     connection.release();

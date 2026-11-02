@@ -32,6 +32,8 @@ test('administrator subject catalogue, assignment workspace and import preview',
   let curriculumId;
   let subjectId;
   let studentProfileId;
+  let teacherUserId;
+  let originalTeacherSubjectIds = [];
   const suffix = Date.now();
   const courseCode = `TC-${String(suffix).slice(-10)}`;
   const studentId = `TCS-${String(suffix).slice(-10)}`;
@@ -60,7 +62,11 @@ test('administrator subject catalogue, assignment workspace and import preview',
     const semester = optionData.semesters.find((item) => Number(item.isActive));
     const section = optionData.sections.find((item) => item.name === 'CSE1' && Number(item.branchOptionId) === Number(cse.id));
     const teacher = optionData.teachers[0];
-    assert.ok(programme && cse && semester && section && teacher, 'configured database options are available without frontend dummy data');
+    const academicYear = optionData.academicYears[0];
+    teacherUserId = teacher?.userId;
+    assert.ok(programme && cse && semester && section && teacher && academicYear, 'configured database options are available without frontend dummy data');
+    const [originalMappings] = await pool.execute('SELECT subject_id AS subjectId FROM teacher_subjects WHERE teacher_user_id = ?', [teacherUserId]);
+    originalTeacherSubjectIds = originalMappings.map((item) => Number(item.subjectId));
 
     const invalid = await post('/api/admin/subjects', { courseName: 'Missing Code', credits: 3 }, adminCookie);
     assert.equal(invalid.status, 400);
@@ -72,13 +78,28 @@ test('administrator subject catalogue, assignment workspace and import preview',
       branchOptionId: cse.id,
       semesterId: semester.id,
       sectionId: section.id,
-      teacherUserId: teacher.userId,
     }, adminCookie);
     assert.equal(created.status, 201, await created.clone().text());
     const createdData = await created.json();
     curriculumId = createdData.id;
     const [ids] = await pool.execute('SELECT subject_id AS subjectId FROM curriculum_subjects WHERE id = ?', [curriculumId]);
     subjectId = ids[0].subjectId;
+
+    const unmappedAllocation = await post('/api/admin/subjects/assignments/teacher', {
+      teacherUserId, sectionId: section.id, semesterId: semester.id, academicYearId: academicYear.id,
+      curriculumSubjectIds: [curriculumId],
+    }, adminCookie);
+    assert.equal(unmappedAllocation.status, 409, 'actual teaching allocations require a teacher-subject mapping');
+    const mapping = await fetch(`${base}/api/admin/teachers/${teacherUserId}/subjects`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ subjectIds: [...originalTeacherSubjectIds, Number(subjectId)] }), redirect: 'manual',
+    });
+    assert.equal(mapping.status, 200);
+    const allocation = await post('/api/admin/subjects/assignments/teacher', {
+      teacherUserId, sectionId: section.id, semesterId: semester.id, academicYearId: academicYear.id,
+      curriculumSubjectIds: [curriculumId],
+    }, adminCookie);
+    assert.equal(allocation.status, 201, await allocation.clone().text());
 
     const duplicate = await post('/api/admin/subjects', {
       courseName: `Duplicate ${suffix}`,
@@ -184,6 +205,13 @@ test('administrator subject catalogue, assignment workspace and import preview',
       await pool.execute('DELETE FROM class_course_assignments WHERE curriculum_subject_id = ?', [curriculumId]);
       await pool.execute('DELETE FROM teacher_course_assignments WHERE curriculum_subject_id = ?', [curriculumId]);
       await pool.execute('DELETE FROM curriculum_subjects WHERE id = ?', [curriculumId]);
+    }
+    if (teacherUserId) {
+      await pool.execute('DELETE FROM teacher_subjects WHERE teacher_user_id = ?', [teacherUserId]);
+      if (originalTeacherSubjectIds.length) {
+        await pool.query(`INSERT INTO teacher_subjects (teacher_user_id, subject_id) VALUES ${originalTeacherSubjectIds.map(() => '(?, ?)').join(', ')}`,
+          originalTeacherSubjectIds.flatMap((id) => [teacherUserId, id]));
+      }
     }
     if (subjectId) await pool.execute('DELETE FROM subjects WHERE id = ?', [subjectId]);
     await new Promise((resolve) => server.close(resolve));

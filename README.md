@@ -66,7 +66,7 @@ The local-only credentials are listed in `TEST_CREDENTIALS.md`, which is ignored
 
 Run the role/login checks after seeding with `npm run test:auth-roles`. It verifies all three redirects, role protection, invalid and inactive login rejection, and logout.
 
-Run `npm run test:teachers` to verify administrator access, input and duplicate validation, database-backed teacher lists and subject filters, bcrypt-12 temporary credentials, first-login password change, and login with the replacement password. The test uses a temporary email and mocks Nodemailer; it sends no email and cleans up its database records.
+Run `npm run test:teachers` to verify administrator access, input and duplicate validation, database-backed teacher lists and subject filters, secure invitation acceptance, dashboard session persistence, and normal login after acceptance. The test mocks Nodemailer; it sends no email and cleans up its database records.
 
 ## Student management and academic structure
 
@@ -136,7 +136,7 @@ This integration check creates a uniquely named temporary test user, exercises t
 - `/api/admin/subjects` provides administrator-only subject search/details/CRUD, live dropdown options, class/teacher/student assignments, effective student courses, and curriculum import preview/approval-gated execution APIs
 - `GET` and `PATCH /api/teacher/profile` read and update only the signed-in teacher's permitted profile fields
 
-Dashboard and management HTML/API routes validate sessions and roles on the server. Teacher and student accounts are redirected away from administrator pages. Teachers created by the teacher form must replace their temporary password on first login. Student login/account provisioning and timetable modules remain out of scope.
+Dashboard and management HTML/API routes validate sessions and roles on the server. Teacher and student accounts are redirected away from administrator pages. Teachers created by the teacher form receive a one-time, 24-hour invitation link and set their initial password before entering the dashboard. Student login/account provisioning and timetable modules remain out of scope.
 
 ## Security and configuration notes
 
@@ -165,6 +165,14 @@ npm run db:migrate-teacher-profile-audit
 
 It does not recreate tables or alter teacher records. Each successful administrator or self-profile save updates the timestamp and records the editor's user ID and role.
 
-Administrators create teachers with a name, email, and contact number. The server derives the Teacher ID from the account ID, uses the email as login ID, and stores a bcrypt hash (12 rounds) for the temporary password. It uses the first four email characters followed by four cryptographically random digits; shorter addresses are padded. Nodemailer sends credentials when configured. Teachers must replace the temporary password with a different password of at least 8 characters before using their dashboard. If email delivery fails, the account remains in the database and the administrator sees a delivery-failed status. The administrator can use the row's **Resend invitation** action to generate a fresh temporary password and retry delivery. Temporary passwords are never returned by the API or logged.
+Before enabling token-based teacher invitations on an existing database, run the additive invitation migration:
+
+```bash
+npm run db:migrate-user-invitations
+```
+
+It adds an invitation-setup flag and a hashed, expiring invitation-token table. It does not run automatically when the server starts.
+
+Administrators create teachers with a name, email, and contact number. The server derives the Teacher ID from the account ID and uses the email as login ID. Nodemailer sends a one-time invitation link and temporary sign-in credentials when configured; the database stores only a SHA-256 token hash, and the link expires after 24 hours. The teacher explicitly accepts or rejects the invitation. Acceptance activates the teacher and sends them to the existing login page; the accepted invitation clears the initial password-change flag so successful sign-in opens the teacher dashboard. Rejected invitations disable the account. If email delivery fails, the account remains in the database and the administrator sees a delivery-failed status. The administrator can use the row's **Resend invitation** action to issue a new link and temporary credential.
 
 The included schema is suitable for a fresh database. If you created the previous draft schema already, its `sessions` table needs a nullable `user_id` and a `session_data JSON` column before using this Express session store. Back up existing data before applying a migration.

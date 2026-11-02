@@ -26,6 +26,21 @@
   let searchTimer;
   let activeAssignmentType = 'class';
 
+  function toast(text, type = 'error') {
+    let node = query('[data-validation-toast]');
+    if (!node) {
+      node = document.createElement('div');
+      node.dataset.validationToast = '';
+      node.setAttribute('role', 'alert');
+      document.body.append(node);
+    }
+    node.textContent = text;
+    node.className = `validation-toast ${type}`;
+    node.hidden = false;
+    clearTimeout(node.dismissTimer);
+    node.dismissTimer = setTimeout(() => { node.hidden = true; }, 6000);
+  }
+
   function setMessage(target, text, type = '') {
     target.textContent = text;
     target.className = `teacher-message${type ? ` ${type}` : ''}`;
@@ -86,6 +101,12 @@
     fillSelect(query('[data-teacher-semester]'), active, 'Select semester', 'id', 'label');
   }
 
+  function fillAcademicYears() {
+    const years = options.academicYears || [];
+    fillSelect(query('[data-teacher-year]'), years, 'Select academic year', 'id', 'label');
+    fillSelect(query('[data-form-year]'), years, 'Select academic year', 'id', 'label');
+  }
+
   function fillTeachers() {
     const teacherSelect = query('[data-teacher-select]');
     const formSelect = formTeacher;
@@ -103,6 +124,7 @@
     options = await request('/api/admin/subjects/options');
     fillProgrammeFilters();
     fillSemesters();
+    fillAcademicYears();
     fillTeachers();
     fillStudents();
     refreshBranches(programmeFilter, branchFilter, 'All branches');
@@ -242,6 +264,8 @@
     refreshBranches(formProgramme, formBranch, 'Select branch or specialisation');
     refreshSections(formProgramme, formBranch, formSection);
     formTeacher.disabled = true;
+    query('[data-form-year-wrap]').hidden = true;
+    query('[data-form-year]').required = false;
   }
 
   function closeDetail() {
@@ -319,7 +343,7 @@
     try {
       const body = Object.fromEntries(new FormData(form));
       body.credits = Number(body.credits);
-      for (const key of ['programmeId', 'branchOptionId', 'semesterId', 'sectionId', 'teacherUserId']) {
+      for (const key of ['programmeId', 'branchOptionId', 'semesterId', 'sectionId', 'teacherUserId', 'academicYearId']) {
         if (body[key]) body[key] = Number(body[key]);
         else delete body[key];
       }
@@ -333,6 +357,7 @@
       await Promise.all([loadSubjects(), loadStats(), loadOptions()]);
     } catch (error) {
       query('[data-subject-error]').textContent = error.message;
+      toast(error.message);
     } finally {
       button.disabled = false;
     }
@@ -353,7 +378,8 @@
         : activeAssignmentType === 'student'
           ? `${assignment.courseName} · ${assignment.studentName}`
           : `${assignment.courseName} · ${assignment.sectionName}`;
-      const context = [assignment.programmeName, assignment.sectionName, assignment.semesterName, assignment.action].filter(Boolean).join(' · ');
+      const context = [assignment.programmeName, assignment.sectionName, assignment.semesterName,
+        activeAssignmentType === 'teacher' ? (assignment.academicYearLabel || 'Legacy / year unassigned') : '', assignment.action].filter(Boolean).join(' · ');
       card.append(textElement('strong', heading), textElement('small', context));
       const remove = document.createElement('button');
       remove.type = 'button';
@@ -381,13 +407,19 @@
   async function submitAssignment(event, type) {
     event.preventDefault();
     const formNode = event.currentTarget;
+    const submitButton = formNode.querySelector('[type="submit"]');
+    if (submitButton.disabled) return;
+    submitButton.disabled = true;
     const body = Object.fromEntries(new FormData(formNode));
     let endpoint = `/api/admin/subjects/assignments/${type}`;
     if (type === 'class' || type === 'teacher') {
       body.curriculumSubjectIds = new FormData(formNode).getAll('curriculumSubjectIds').filter(Boolean).map(Number);
       body.sectionId = Number(body.sectionId);
       body.semesterId = Number(formNode.querySelector(type === 'class' ? '[data-class-semester]' : '[data-teacher-semester]').value);
-      if (type === 'teacher') body.teacherUserId = Number(body.teacherUserId);
+      if (type === 'teacher') {
+        body.teacherUserId = Number(body.teacherUserId);
+        body.academicYearId = Number(body.academicYearId);
+      }
     } else {
       body.studentProfileId = Number(body.studentProfileId);
       body.curriculumSubjectId = Number(body.curriculumSubjectId);
@@ -396,9 +428,13 @@
       const data = await request(endpoint, { method: 'POST', body: JSON.stringify(body) });
       formNode.reset();
       setMessage(assignmentMessage, data.message, 'success');
+      toast(data.message, 'success');
       await Promise.all([loadAssignments(), loadOptions()]);
     } catch (error) {
       setMessage(assignmentMessage, error.message, 'error');
+      toast(error.message);
+    } finally {
+      submitButton.disabled = false;
     }
   }
 
@@ -471,6 +507,13 @@
   formSection.addEventListener('change', () => {
     formTeacher.disabled = !formSection.value;
     if (!formTeacher.value && options.teachers.length) formTeacher.value = '';
+  });
+  formTeacher.addEventListener('change', () => {
+    const yearWrap = query('[data-form-year-wrap]');
+    const yearSelect = query('[data-form-year]');
+    yearWrap.hidden = !formTeacher.value;
+    yearSelect.required = Boolean(formTeacher.value);
+    if (!formTeacher.value) yearSelect.value = '';
   });
 
   const classProgramme = query('[data-class-programme]');

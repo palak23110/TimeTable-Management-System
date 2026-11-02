@@ -31,9 +31,11 @@ router.post('/login', async (req, res, next) => {
 
     const [rows] = await pool.execute(`
       SELECT id, name, login_id AS loginId, email, password_hash AS passwordHash,
-        role, is_active AS isActive, must_change_password AS mustChangePassword
-      FROM users
-      WHERE login_id = ? OR email = ?
+        role, is_active AS isActive, must_change_password AS mustChangePassword,
+        tp.invitation_setup_required AS invitationSetupRequired
+      FROM users u
+      LEFT JOIN teacher_profiles tp ON tp.user_id = u.id
+      WHERE u.login_id = ? OR u.email = ?
       LIMIT 1
     `, [identifier, identifier]);
     const user = rows[0];
@@ -41,11 +43,15 @@ router.post('/login', async (req, res, next) => {
     if (!user || !user.isActive || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ error: 'The login ID/email or password is incorrect.' });
     }
+    if (user.role === 'teacher' && user.invitationSetupRequired) {
+      return res.status(401).json({ error: 'Accept your teacher invitation before signing in.' });
+    }
 
     req.session.regenerate((error) => {
       if (error) return next(error);
 
       req.session.userId = user.id;
+      req.session.role = user.role;
       if (body.remember === true) {
         req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
       } else {
@@ -55,7 +61,7 @@ router.post('/login', async (req, res, next) => {
       req.session.save((saveError) => {
         if (saveError) return next(saveError);
 
-        const redirectTo = user.role === 'teacher' && user.mustChangePassword
+        const redirectTo = user.mustChangePassword
           ? '/change-password'
           : `/${user.role === 'administrator' ? 'admin' : user.role}/dashboard`;
         res.json({ redirectTo });
@@ -63,6 +69,85 @@ router.post('/login', async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+});
+
+router.post('/accept-invitation', async (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const { token } = body;
+  if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{40,60}$/.test(token)) {
+    return res.status(400).json({ error: 'This invitation link is invalid or has expired.' });
+  }
+
+  const connection = await pool.getConnection();
+  let user;
+  try {
+    await connection.beginTransaction();
+    const [rows] = await connection.execute(`
+      SELECT t.id AS tokenId, u.id, u.role, u.is_active AS isActive
+      FROM user_invitation_tokens t JOIN users u ON u.id = t.user_id
+      WHERE t.token_hash = ? AND t.accepted_at IS NULL AND t.rejected_at IS NULL
+        AND t.expires_at > UTC_TIMESTAMP()
+      LIMIT 1 FOR UPDATE
+    `, [hash(token)]);
+    user = rows[0];
+    if (!user || !user.isActive) {
+      await connection.rollback();
+      return res.status(400).json({ error: 'This invitation link is invalid, expired, or has already been accepted or rejected.' });
+    }
+    if (user.role === 'teacher') {
+      const [profile] = await connection.execute('SELECT invitation_setup_required AS setupRequired FROM teacher_profiles WHERE user_id = ? FOR UPDATE', [user.id]);
+      if (!profile.length || !profile[0].setupRequired) {
+        await connection.rollback();
+        return res.status(400).json({ error: 'This invitation is no longer awaiting account setup.' });
+      }
+    }
+    await connection.execute('UPDATE users SET is_active = TRUE, must_change_password = FALSE WHERE id = ?', [user.id]);
+    if (user.role === 'teacher') {
+      await connection.execute('UPDATE teacher_profiles SET invitation_pending = FALSE, invitation_setup_required = FALSE WHERE user_id = ?', [user.id]);
+    }
+    await connection.execute('UPDATE user_invitation_tokens SET accepted_at = UTC_TIMESTAMP() WHERE id = ?', [user.tokenId]);
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    return next(error);
+  } finally {
+    connection.release();
+  }
+
+  res.json({ message: 'Invitation accepted. Sign in with the credentials in your invitation email.', redirectTo: '/login?invitation=accepted' });
+});
+
+router.post('/reject-invitation', async (req, res, next) => {
+  const token = req.body?.token;
+  if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{40,60}$/.test(token)) {
+    return res.status(400).json({ error: 'This invitation link is invalid or has expired.' });
+  }
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [rows] = await connection.execute(`
+      SELECT t.id AS tokenId, u.id, u.role
+      FROM user_invitation_tokens t JOIN users u ON u.id = t.user_id
+      WHERE t.token_hash = ? AND t.accepted_at IS NULL AND t.rejected_at IS NULL
+        AND t.expires_at > UTC_TIMESTAMP()
+      LIMIT 1 FOR UPDATE
+    `, [hash(token)]);
+    const invitation = rows[0];
+    if (!invitation || invitation.role !== 'teacher') {
+      await connection.rollback();
+      return res.status(400).json({ error: 'This invitation link is invalid, expired, or has already been accepted or rejected.' });
+    }
+    await connection.execute('UPDATE user_invitation_tokens SET rejected_at = UTC_TIMESTAMP() WHERE id = ?', [invitation.tokenId]);
+    await connection.execute('UPDATE users SET is_active = FALSE WHERE id = ?', [invitation.id]);
+    await connection.execute('UPDATE teacher_profiles SET invitation_pending = FALSE, invitation_setup_required = FALSE WHERE user_id = ?', [invitation.id]);
+    await connection.commit();
+    res.json({ message: 'This teacher invitation has been rejected.' });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
+  } finally {
+    connection.release();
   }
 });
 
@@ -110,7 +195,7 @@ router.post('/change-password', requireAuth, async (req, res, next) => {
 
       if (user.role === 'teacher') {
         await connection.execute(
-          'UPDATE teacher_profiles SET invitation_pending = FALSE WHERE user_id = ?',
+          'UPDATE teacher_profiles SET invitation_pending = FALSE, invitation_setup_required = FALSE WHERE user_id = ?',
           [user.id],
         );
       }
@@ -214,11 +299,10 @@ router.post('/reset-password', async (req, res, next) => {
       SET password_hash = ?, must_change_password = FALSE
       WHERE id = ?
     `, [passwordHash, reset.userId]);
-    await connection.execute(`
-      UPDATE teacher_profiles
-      SET invitation_pending = FALSE
-      WHERE user_id = ?
-    `, [reset.userId]);
+    await connection.execute(`UPDATE teacher_profiles
+      SET invitation_pending = FALSE, invitation_setup_required = FALSE WHERE user_id = ?`, [reset.userId]);
+    await connection.execute(`UPDATE user_invitation_tokens SET accepted_at = UTC_TIMESTAMP()
+      WHERE user_id = ? AND accepted_at IS NULL`, [reset.userId]);
     await connection.execute(`
       UPDATE password_reset_tokens
       SET used_at = UTC_TIMESTAMP()

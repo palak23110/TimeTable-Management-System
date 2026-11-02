@@ -51,6 +51,7 @@ app.get('/', (req, res) => res.sendFile(path.join(frontend, 'login.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(frontend, 'login.html')));
 app.get('/forgot-password', (req, res) => res.sendFile(path.join(frontend, 'forgot-password.html')));
 app.get('/reset-password', (req, res) => res.sendFile(path.join(frontend, 'reset-password.html')));
+app.get('/accept-invitation', (req, res) => res.sendFile(path.join(frontend, 'invitation.html')));
 app.get('/change-password', requireAuth, (req, res) => {
   if (!req.user.mustChangePassword) return res.redirect(`/${req.user.role === 'administrator' ? 'admin' : req.user.role}/dashboard`);
   res.sendFile(path.join(frontend, 'change-password.html'));
