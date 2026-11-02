@@ -1,10 +1,14 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const { createHash, randomBytes } = require('node:crypto');
 const pool = require('../database/pool');
+const { sendPasswordResetEmail } = require('../services/mail');
 
 const router = express.Router();
 const pageSize = 8;
 const validStudentId = /^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$/;
 const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const hashToken = (value) => createHash('sha256').update(value).digest('hex');
 const allowedFields = new Set([
   'name', 'studentId', 'email', 'contactNumber', 'programmeId',
   'branchOptionId', 'specialisationOptionId', 'enrolledYear',
@@ -301,7 +305,7 @@ router.post('/', async (req, res, next) => {
     await connection.beginTransaction();
     const [duplicates] = await connection.execute(`
       SELECT id FROM student_profiles
-      WHERE student_id = ? OR email = ?
+      WHERE student_id = ? OR LOWER(TRIM(email)) = ?
       LIMIT 1 FOR UPDATE
     `, [personal.studentId, personal.email]);
     if (duplicates.length) {
@@ -310,14 +314,33 @@ router.post('/', async (req, res, next) => {
     }
     const [accounts] = await connection.execute(`
       SELECT id, role FROM users
-      WHERE email = ? OR login_id = ?
-      LIMIT 1
+      WHERE LOWER(TRIM(email)) = ? OR LOWER(TRIM(login_id)) = ?
+      FOR UPDATE
     `, [personal.email, personal.email]);
-    if (accounts.length && accounts[0].role !== 'student') {
+    if (accounts.some((account) => account.role !== 'student')) {
       await connection.rollback();
-      return badRequest(res, 'That email address belongs to a non-student account.', 409);
+      return badRequest(res, 'That email address belongs to an account with a different role.', 409);
+    }
+    if (accounts.length > 1) {
+      await connection.rollback();
+      return badRequest(res, 'More than one account matches that email address. Resolve the duplicate accounts before linking this student.', 409);
     }
     let linkedUserId = accounts[0]?.id ?? null;
+    let setupToken = null;
+    if (!linkedUserId) {
+      const generatedPassword = randomBytes(48).toString('base64url');
+      const passwordHash = await bcrypt.hash(generatedPassword, 12);
+      const [createdUser] = await connection.execute(`
+        INSERT INTO users (name, login_id, email, password_hash, role, is_active, must_change_password)
+        VALUES (?, ?, ?, ?, 'student', TRUE, TRUE)
+      `, [personal.name, personal.email, personal.email, passwordHash]);
+      linkedUserId = createdUser.insertId;
+      setupToken = randomBytes(32).toString('base64url');
+      await connection.execute(`
+        INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+        VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 MINUTE))
+      `, [linkedUserId, hashToken(setupToken)]);
+    }
     if (linkedUserId) {
       const [linked] = await connection.execute('SELECT id FROM student_profiles WHERE user_id = ? LIMIT 1', [linkedUserId]);
       if (linked.length) {
@@ -337,8 +360,26 @@ router.post('/', async (req, res, next) => {
       academic.enrolledYear, academic.graduationYear, academic.semesterId, academic.sectionId,
     ]);
     await connection.commit();
-    const [records] = await pool.execute('SELECT id, student_id AS studentId, name, email FROM student_profiles WHERE id = ?', [created.insertId]);
-    res.status(201).json({ message: 'Student record added successfully.', student: records[0] });
+    const [records] = await pool.execute('SELECT id, user_id AS userId, student_id AS studentId, name, email FROM student_profiles WHERE id = ?', [created.insertId]);
+    let setupEmailSent = null;
+    if (setupToken) {
+      const sendMail = req.app.locals.sendPasswordResetEmail || sendPasswordResetEmail;
+      try {
+        await sendMail(personal.email, setupToken);
+        setupEmailSent = true;
+      } catch (mailError) {
+        setupEmailSent = false;
+        req.app.locals.logger.error('Student credential setup email delivery failed.', mailError);
+      }
+    }
+    res.status(201).json({
+      message: setupEmailSent === false
+        ? 'Student record and account were created, but the password setup email could not be sent. Resend a password reset link after checking mail configuration.'
+        : 'Student record and account added successfully.',
+      student: records[0],
+      accountLinked: true,
+      credentialSetupEmailSent: setupEmailSent,
+    });
   } catch (error) {
     await connection.rollback();
     if (error.code === 'ER_DUP_ENTRY') return badRequest(res, 'A student record already uses that Student ID or email address.', 409);
@@ -405,7 +446,7 @@ router.patch('/:studentProfileId', async (req, res, next) => {
 
     if (nextEmail !== current.email) {
       const [duplicates] = await connection.execute(`
-        SELECT id FROM student_profiles WHERE email = ? AND id <> ? LIMIT 1
+        SELECT id FROM student_profiles WHERE LOWER(TRIM(email)) = ? AND id <> ? LIMIT 1
       `, [nextEmail, studentProfileId]);
       const [accountDuplicates] = await connection.execute(`
         SELECT id FROM users

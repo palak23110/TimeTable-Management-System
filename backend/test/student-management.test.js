@@ -29,12 +29,19 @@ test('student intake, academic configuration, semester calculation and admin acc
 
   let adminCookie;
   let profileId;
+  let userId;
+  let linkedProfileId;
+  let existingStudentUserId;
+  let conflictingUserId;
+  const originalSetupMailer = app.locals.sendPasswordResetEmail;
+  const setupEmails = [];
+  app.locals.sendPasswordResetEmail = async (address, token) => setupEmails.push({ address, token });
   let testOptionId;
   let testSectionId;
   let testYearId;
   let testTermIds = [];
   const suffix = Date.now();
-  const email = `tc-student-${suffix}@example.invalid`;
+  const email = `tc-student-${suffix}@gmail.com`;
   const studentId = `TC-${String(suffix).slice(-12)}`;
 
   try {
@@ -89,7 +96,7 @@ test('student intake, academic configuration, semester calculation and admin acc
     const studentPayload = {
       name: 'TC Student Fixture',
       studentId,
-      email,
+      email: `  ${email.toUpperCase()}  `,
       contactNumber: '+1 555 010 1212',
       programmeId: btech.id,
       branchOptionId: cse.id,
@@ -102,20 +109,67 @@ test('student intake, academic configuration, semester calculation and admin acc
     assert.equal(created.status, 201, await created.clone().text());
     const createdData = await created.json();
     profileId = createdData.student.id;
+    userId = createdData.student.userId;
     assert.equal(createdData.student.studentId, studentId);
+    assert.equal(createdData.student.email, email);
+    assert.equal(createdData.accountLinked, true);
+    assert.equal(createdData.credentialSetupEmailSent, true);
+    assert.equal(setupEmails.length, 1);
+    assert.equal(setupEmails[0].address, email);
+    assert.ok(setupEmails[0].token);
 
     const [stored] = await pool.execute(`
-      SELECT sp.user_id AS userId, sp.student_id AS studentId,
+      SELECT sp.user_id AS userId, u.email, u.login_id AS loginId, u.role, u.is_active AS isActive,
+        u.must_change_password AS mustChangePassword, sp.student_id AS studentId,
         sp.current_semester_id AS semesterId, s.semester_number AS semesterNumber,
         sp.section_id AS sectionId
       FROM student_profiles sp
+      JOIN users u ON u.id = sp.user_id
       LEFT JOIN academic_semesters s ON s.id = sp.current_semester_id
       WHERE sp.id = ?
     `, [profileId]);
-    assert.equal(stored[0].userId, null, 'student invitation/login account is intentionally out of scope');
+    assert.ok(stored[0].userId);
+    assert.equal(stored[0].email, email);
+    assert.equal(stored[0].loginId, email);
+    assert.equal(stored[0].role, 'student');
+    assert.equal(Number(stored[0].isActive), 1);
+    assert.equal(Number(stored[0].mustChangePassword), 1, 'new account requires initial password setup');
     assert.equal(Number(stored[0].semesterId), Number(semester.id));
     assert.equal(Number(stored[0].semesterNumber), semesterNumber);
     assert.equal(Number(stored[0].sectionId), Number(firstSection.id));
+
+    const linkedEmail = `tc-linked-${suffix}@gmail.com`;
+    const [existingStudent] = await pool.execute(`
+      INSERT INTO users (name, login_id, email, password_hash, role, is_active)
+      VALUES (?, ?, ?, 'test-hash', 'student', TRUE)
+    `, ['Existing student', linkedEmail, linkedEmail]);
+    existingStudentUserId = existingStudent.insertId;
+    const linkedResult = await post('/api/admin/students', {
+      ...studentPayload,
+      name: 'Existing student profile',
+      studentId: `${studentId}-LINK`,
+      email: linkedEmail,
+    }, adminCookie);
+    assert.equal(linkedResult.status, 201, await linkedResult.clone().text());
+    const linkedData = await linkedResult.json();
+    linkedProfileId = linkedData.student.id;
+    assert.equal(Number(linkedData.student.userId), Number(existingStudentUserId));
+    assert.equal(linkedData.credentialSetupEmailSent, null, 'existing accounts are linked without sending setup email');
+    assert.equal(setupEmails.length, 1);
+
+    const conflictEmail = `tc-conflict-${suffix}@gmail.com`;
+    const [otherRole] = await pool.execute(`
+      INSERT INTO users (name, login_id, email, password_hash, role, is_active)
+      VALUES (?, ?, ?, 'test-hash', 'administrator', TRUE)
+    `, ['Conflicting role', conflictEmail, conflictEmail]);
+    conflictingUserId = otherRole.insertId;
+    const roleConflict = await post('/api/admin/students', {
+      ...studentPayload,
+      studentId: `${studentId}-ROLE`,
+      email: conflictEmail,
+    }, adminCookie);
+    assert.equal(roleConflict.status, 409);
+    assert.match((await roleConflict.json()).error, /different role/i);
 
     const duplicateStudent = await post('/api/admin/students', studentPayload, adminCookie);
     assert.equal(duplicateStudent.status, 409);
@@ -127,7 +181,7 @@ test('student intake, academic configuration, semester calculation and admin acc
     }, adminCookie);
     assert.equal(invalidGraduation.status, 400);
 
-    const list = await get(`/api/admin/students?search=${encodeURIComponent(studentId)}&page=1`, adminCookie);
+    const list = await get(`/api/admin/students?search=${encodeURIComponent(email)}&page=1`, adminCookie);
     assert.equal(list.status, 200);
     const listed = await list.json();
     assert.equal(listed.total, 1);
@@ -197,6 +251,10 @@ test('student intake, academic configuration, semester calculation and admin acc
     assert.ok(stats.stats.total >= 1);
   } finally {
     if (profileId) await pool.execute('DELETE FROM student_profiles WHERE id = ?', [profileId]);
+    if (linkedProfileId) await pool.execute('DELETE FROM student_profiles WHERE id = ?', [linkedProfileId]);
+    if (userId) await pool.execute('DELETE FROM users WHERE id = ?', [userId]);
+    if (existingStudentUserId) await pool.execute('DELETE FROM users WHERE id = ?', [existingStudentUserId]);
+    if (conflictingUserId) await pool.execute('DELETE FROM users WHERE id = ?', [conflictingUserId]);
     if (testSectionId) await pool.execute('DELETE FROM academic_sections WHERE id = ?', [testSectionId]);
     if (testOptionId) await pool.execute('DELETE FROM academic_options WHERE id = ?', [testOptionId]);
     if (testTermIds.length) {
@@ -204,6 +262,7 @@ test('student intake, academic configuration, semester calculation and admin acc
       await pool.execute(`DELETE FROM academic_terms WHERE id IN (${placeholders})`, testTermIds);
     }
     if (testYearId) await pool.execute('DELETE FROM academic_years WHERE id = ?', [testYearId]);
+    app.locals.sendPasswordResetEmail = originalSetupMailer;
     await new Promise((resolve) => server.close(resolve));
     await pool.end();
   }

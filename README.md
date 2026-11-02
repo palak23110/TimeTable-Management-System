@@ -78,7 +78,7 @@ npm run db:migrate-students
 
 It creates academic programme, option, year, term, semester, section, and student-profile tables; seeds the configurable undergraduate programme catalogue and the requested B.Tech CSE (CSE1–CSE8) and BBA (BBA1–BBA5) sections; and adds profile rows for existing student users without changing their credentials or roles. The migration is safe to rerun. For a fresh database, `database/schema.sql` includes these tables; seed the administrator and run the migration to load the initial academic configuration.
 
-Student records created through this phase are academic profiles. This phase does not create student login accounts, passwords, or invitation emails. If an existing active student user has the same email address, the profile can link to that account; otherwise the profile remains unlinked until account provisioning is implemented separately.
+Creating a student profile also links an existing student account with a matching email, or creates a student account when none exists. New accounts receive a password setup link through the existing password-reset flow; passwords are never emailed. Email matching is case-insensitive and trims surrounding whitespace. An email already owned by another role is rejected.
 
 The active academic year and term drive the current-semester calculation. The academic-structure page lets administrators configure programmes, branches/majors, specialisations, academic years/terms, semesters, and sections. Do not activate a future academic year or term until it should define the current student semester.
 
