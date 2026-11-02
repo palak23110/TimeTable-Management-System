@@ -17,6 +17,7 @@ const timeSlotRoutes = require('./routes/time-slots');
 const timetableRoutes = require('./routes/timetable');
 const teacherTimetableRoutes = require('./routes/teacher-timetable');
 const studentTimetableRoutes = require('./routes/student-timetable');
+const adminDashboardRoutes = require('./routes/admin-dashboard');
 
 const app = express();
 const frontend = path.resolve(__dirname, '../frontend');
@@ -83,6 +84,7 @@ app.get('/admin/time-slots', requireAuth, requireRole('administrator'), (req, re
   res.sendFile(path.join(frontend, 'dashboards', 'time-slots.html'));
 });
 app.use('/api/admin/students', requireAuth, requireRole('administrator'), studentsRoutes);
+app.use('/api/admin/dashboard', requireAuth, requireRole('administrator'), adminDashboardRoutes);
 app.use('/api/admin/academic-structure', requireAuth, requireRole('administrator'), academicStructureRoutes);
 app.use('/api/admin/subjects', requireAuth, requireRole('administrator'), subjectRoutes);
 app.use('/api/admin/rooms', requireAuth, requireRole('administrator'), roomRoutes);

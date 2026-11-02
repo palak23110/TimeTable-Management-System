@@ -125,14 +125,16 @@
           <button type="button" data-close-drawer aria-label="Close">×</button>
         </header>
         <form data-teacher-form>
-          <div class="drawer-fields">
-            <label>Teacher name *<input name="name" maxlength="160" required autocomplete="name" placeholder="Enter full name"></label>
-            <label>Teacher ID *<input name="teacherId" maxlength="24" required placeholder="TCH-0000"></label>
-            <label>Email address *<input name="email" type="email" maxlength="254" required autocomplete="email" placeholder="name@bmu.edu"></label>
-            <label>Contact number *<input name="contactNumber" type="tel" maxlength="32" required autocomplete="tel" placeholder="+1 555 0000"></label>
+          <div class="drawer-form-body">
+            <div class="drawer-fields">
+              <label>Teacher name *<input name="name" maxlength="160" required autocomplete="name" placeholder="Enter full name"></label>
+              <label>Teacher ID *<input name="teacherId" maxlength="24" required placeholder="TCH-0000"></label>
+              <label>Email address *<input name="email" type="email" maxlength="254" required autocomplete="email" placeholder="name@bmu.edu"></label>
+              <label>Contact number *<input name="contactNumber" type="tel" maxlength="32" required autocomplete="tel" placeholder="+1 555 0000"></label>
+            </div>
+            <p class="invite-note">✉ &nbsp;An invitation email with temporary credentials will be sent after account creation.</p>
+            <p class="form-error" data-form-error role="alert"></p>
           </div>
-          <p class="invite-note">✉ &nbsp;An invitation email with temporary credentials will be sent after account creation.</p>
-          <p class="form-error" data-form-error role="alert"></p>
           <footer>
             <button type="button" class="secondary-button" data-close-drawer>Cancel</button>
             <button class="primary-button" type="submit">✓ &nbsp;Save record</button>

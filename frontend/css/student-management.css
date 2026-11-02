@@ -110,7 +110,16 @@
 
 .student-drawer {
   width: min(760px, 100%);
-  max-height: min(920px, calc(100dvh - 42px));
+  height: min(920px, calc(100dvh - 42px));
+  max-height: calc(100dvh - 42px);
+}
+
+.student-drawer form {
+  min-height: 0;
+}
+
+.student-drawer .drawer-form-body {
+  padding-bottom: 12px;
 }
 
 .student-fields {

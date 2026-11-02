@@ -1,5 +1,14 @@
 /* Timetable Creation and Editing Styles */
 .timetable-content { padding-top: 40px; }
+.timetable-icon { display:inline-block; width:18px; height:18px; flex:0 0 18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+.timetable-header-actions button,.timetable-toolbar .view-tab,.timetable-dialog button { display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+.timetable-stat-icon { width:30px; height:30px; display:inline-grid; place-items:center; }
+.timetable-stat-icon .timetable-icon { width:26px; height:26px; flex-basis:26px; stroke-width:1.7; }
+.teacher-search .timetable-icon { width:18px; height:18px; flex-basis:18px; }
+.breadcrumb-icon { width:13px; height:13px; flex-basis:13px; margin:0 4px; color:#94a0b7; }
+.dialog-close .timetable-icon { width:19px; height:19px; flex-basis:19px; }
+.timetable-page .admin-brand-mark .timetable-icon { width:24px; height:24px; flex-basis:24px; }
+.timetable-page .help-arrow .timetable-icon { width:17px; height:17px; flex-basis:17px; }
 .timetable-title { align-items: flex-end; margin-bottom: 30px; display: flex; justify-content: space-between; }
 .timetable-header-actions { display: flex; align-items: center; gap: 10px; }
 .timetable-message { min-height: 0; margin: 0; }

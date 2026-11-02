@@ -4,6 +4,7 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => document.querySelectorAll(selector);
   const esc = (text) => String(text ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const icon = (name) => `<svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#${name}"></use></svg>`;
 
   const state = {
     options: null,
@@ -319,7 +320,7 @@
             ${items.map(item => `
               <div class="matrix-card">
                 <strong class="matrix-subject">${esc(item.subjectName)}</strong>
-                <div class="matrix-teacher">👨‍🏫 ${esc(item.teacherName)}</div>
+                <div class="matrix-teacher">${icon('teacher')} ${esc(item.teacherName)}</div>
                 <div class="matrix-meta">
                   <span class="matrix-sec">${esc(item.sectionName)}</span>
                   <span class="matrix-room">${esc(item.roomNumber)}</span>
@@ -383,7 +384,7 @@
       if (entry) {
         $('[data-editor-eyebrow]').textContent = 'Edit Timetable Record';
         $('[data-editor-title]').textContent = 'Edit and update timetable';
-        $('[data-save]').textContent = '✓  Update timetable';
+        $('[data-save]').innerHTML = `${icon('check')}Update timetable`;
         form.elements.entryId.value = entry.id;
 
         form.elements.programmeId.value = entry.programmeId;
@@ -397,7 +398,7 @@
       } else {
         $('[data-editor-eyebrow]').textContent = 'New Timetable Record';
         $('[data-editor-title]').textContent = 'Create a timetable';
-        $('[data-save]').textContent = '✓  Save timetable';
+        $('[data-save]').innerHTML = `${icon('check')}Save timetable`;
         form.elements.entryId.value = '';
         updateFormSections('');
       }
@@ -675,7 +676,7 @@
               <td style="padding:10px 8px;">${esc(t.department || '—')}</td>
               <td style="padding:10px 8px;">
                 <span class="view-pill" style="background:${t.isAuthorized ? '#dcfce7;color:#166534' : '#f1f5f9;color:#64748b'}">
-                  ${t.isAuthorized ? '✓ Authorized' : 'Standard'}
+                  ${t.isAuthorized ? `${icon('check')} Authorized` : 'Standard'}
                 </span>
               </td>
               <td style="padding:10px 8px;text-align:right;">
@@ -745,7 +746,7 @@
           });
           const prevStr = l.previousDay ? `${l.previousDay} ${l.previousStartTime || ''}–${l.previousEndTime || ''} (${l.previousSlot || ''}) · Rm ${l.previousRoom || ''}` : '—';
           const newStr = l.newDay ? `${l.newDay} ${l.newStartTime || ''}–${l.newEndTime || ''} (${l.newSlot || ''}) · Rm ${l.newRoom || ''}` : '—';
-          const notifStr = l.notificationSent ? `✓ Sent (${l.notificationRecipientCount})` : (l.notificationError ? `⚠ Skipped (${l.notificationRecipientCount})` : 'Pending');
+          const notifStr = l.notificationSent ? `${icon('check')} Sent (${l.notificationRecipientCount})` : (l.notificationError ? `Skipped (${l.notificationRecipientCount})` : 'Pending');
 
           return `
             <tr style="border-bottom:1px solid #edf2f7;">

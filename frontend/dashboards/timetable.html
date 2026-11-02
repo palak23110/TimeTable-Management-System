@@ -10,38 +10,39 @@
   <link rel="stylesheet" href="/css/teacher-management.css">
   <link rel="stylesheet" href="/css/rooms.css">
   <link rel="stylesheet" href="/css/timetable.css">
+  <link rel="preload" href="/css/timetable-icons.svg" as="image" type="image/svg+xml">
   <script src="/js/dashboard.js" defer></script>
   <script src="/js/timetable.js" defer></script>
 </head>
 <body class="admin-dashboard timetable-page">
 <div class="admin-shell">
   <aside class="admin-sidebar" id="admin-sidebar" aria-label="Administrator navigation">
-    <a class="admin-brand" href="/admin/dashboard"><span class="admin-brand-mark">▦</span><span><strong>BMU</strong><small>Timetable System</small></span></a>
+    <a class="admin-brand" href="/admin/dashboard"><span class="admin-brand-mark"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#dashboard"></use></svg></span><span><strong>BMU</strong><small>Timetable System</small></span></a>
     <div class="workspace-heading"><span>Academic Workspace</span><span class="academic-year">2025–26</span></div>
     <nav class="admin-nav">
-      <a class="nav-item" href="/admin/dashboard">▦ <span>Overview</span></a>
+      <a class="nav-item" href="/admin/dashboard"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#dashboard"></use></svg><span>Overview</span></a>
       <p class="nav-group-label">Management</p>
-      <a class="nav-item" href="/admin/teachers">♙ <span>Teachers</span></a>
-      <a class="nav-item" href="/admin/students">♧ <span>Students</span></a>
-      <a class="nav-item" href="/admin/academic-structure">⌂ <span>Academic structure</span></a>
-      <a class="nav-item" href="/admin/subjects">▤ <span>Subjects</span></a>
+      <a class="nav-item" href="/admin/teachers"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#people"></use></svg><span>Teachers</span></a>
+      <a class="nav-item" href="/admin/students"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#student"></use></svg><span>Students</span></a>
+      <a class="nav-item" href="/admin/academic-structure"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#structure"></use></svg><span>Academic structure</span></a>
+      <a class="nav-item" href="/admin/subjects"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#book"></use></svg><span>Subjects</span></a>
       <p class="nav-group-label">Scheduling</p>
-      <a class="nav-item" href="/admin/rooms">▥ <span>Rooms &amp; labs</span></a>
-      <a class="nav-item" href="/admin/time-slots">◷ <span>Working hours</span></a>
-      <a class="nav-item active" href="/admin/timetable" aria-current="page">📅 <span>Timetable</span></a>
+      <a class="nav-item" href="/admin/rooms"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#building"></use></svg><span>Rooms &amp; labs</span></a>
+      <a class="nav-item" href="/admin/time-slots"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#clock"></use></svg><span>Working hours</span></a>
+      <a class="nav-item active" href="/admin/timetable" aria-current="page"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#calendar"></use></svg><span>Timetable</span></a>
     </nav>
-    <div class="help-card"><span class="help-icon">ⓘ</span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow">→</span></div>
+    <div class="help-card"><span class="help-icon"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#help"></use></svg></span><span><strong>Need assistance?</strong><small>View scheduling guide</small></span><span class="help-arrow"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#arrow-right"></use></svg></span></div>
     <div class="sidebar-profile">
       <span class="profile-avatar" data-user-initials>BM</span>
       <span class="profile-copy"><strong data-user-name></strong><small><span data-user-role>Administrator</span><span class="profile-id" data-user-login></span></small></span>
-      <button class="sidebar-logout" type="button" data-logout aria-label="Log out">↪</button>
+      <button class="sidebar-logout" type="button" data-logout aria-label="Log out"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#logout"></use></svg></button>
     </div>
   </aside>
 
   <div class="admin-main">
     <header class="admin-topbar">
-      <button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false">☰</button>
-      <span class="topbar-search">TTMS &nbsp;›&nbsp; Scheduling · Master Timetable</span>
+      <button class="mobile-menu-button" type="button" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#menu"></use></svg></button>
+      <span class="topbar-search">TTMS <svg class="timetable-icon breadcrumb-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#chevron-right"></use></svg> Scheduling · Master Timetable</span>
       <div class="topbar-actions">
         <span class="view-label">Administrator view</span>
         <span class="topbar-divider"></span>
@@ -59,35 +60,35 @@
 
       <div class="teacher-title timetable-title no-print">
         <div>
-          <p class="teacher-breadcrumb">TTMS &nbsp;›&nbsp; Scheduling · Timetable Viewing &amp; Management</p>
+          <p class="teacher-breadcrumb">TTMS <svg class="timetable-icon breadcrumb-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#chevron-right"></use></svg> Scheduling · Timetable Viewing &amp; Management</p>
           <h1>Timetable Management</h1>
           <p>Create, view, edit, filter and export institutional schedules.</p>
         </div>
         <div class="timetable-header-actions">
-          <button class="secondary-button" type="button" data-download-csv title="Export current view to CSV">📥 &nbsp;Download CSV</button>
-          <button class="secondary-button" type="button" data-print-timetable title="Print current schedule">🖨️ &nbsp;Print Timetable</button>
-          <button class="secondary-button" type="button" data-open-permissions title="Manage which teachers are authorized to reschedule classes">🔑 &nbsp;Teacher Permissions</button>
-          <button class="secondary-button" type="button" data-open-logs title="View rescheduling change history">📜 &nbsp;Change Logs</button>
-          <button class="primary-button" type="button" data-open-timetable id="btn-create-timetable">＋ &nbsp;Create timetable</button>
+          <button class="secondary-button" type="button" data-download-csv title="Export current view to CSV"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#download"></use></svg>Download CSV</button>
+          <button class="secondary-button" type="button" data-print-timetable title="Print current schedule"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#printer"></use></svg>Print Timetable</button>
+          <button class="secondary-button" type="button" data-open-permissions title="Manage which teachers are authorized to reschedule classes"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#key"></use></svg>Teacher Permissions</button>
+          <button class="secondary-button" type="button" data-open-logs title="View rescheduling change history"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#history"></use></svg>Change Logs</button>
+          <button class="primary-button" type="button" data-open-timetable id="btn-create-timetable"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#plus"></use></svg>Create timetable</button>
         </div>
       </div>
 
       <p class="timetable-message" data-message role="status" aria-live="polite"></p>
 
       <section class="teacher-stats timetable-stats no-print" aria-label="Timetable statistics">
-        <article><span>📅</span><div><strong data-stat="total">—</strong><small>Total scheduled entries</small></div></article>
-        <article><span>🏫</span><div><strong data-stat="sections">—</strong><small>Active classes</small></div></article>
-        <article><span>👨‍🏫</span><div><strong data-stat="teachers">—</strong><small>Teaching faculty</small></div></article>
-        <article><span>▥</span><div><strong data-stat="rooms">—</strong><small>Allocated rooms</small></div></article>
+        <article><span class="timetable-stat-icon"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#calendar"></use></svg></span><div><strong data-stat="total">—</strong><small>Total scheduled entries</small></div></article>
+        <article><span class="timetable-stat-icon"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#building"></use></svg></span><div><strong data-stat="sections">—</strong><small>Active classes</small></div></article>
+        <article><span class="timetable-stat-icon"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#teacher"></use></svg></span><div><strong data-stat="teachers">—</strong><small>Teaching faculty</small></div></article>
+        <article><span class="timetable-stat-icon"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#building"></use></svg></span><div><strong data-stat="rooms">—</strong><small>Allocated rooms</small></div></article>
       </section>
 
       <!-- View Switcher & Multi-Filter Toolbar (TC42, TC43) -->
       <section class="teacher-toolbar timetable-toolbar no-print" aria-label="Search and filter timetables">
         <div class="view-tabs" role="tablist">
-          <button type="button" class="view-tab active" data-view="table" role="tab" aria-selected="true">📋 Table View</button>
-          <button type="button" class="view-tab" data-view="grid" role="tab" aria-selected="false">📅 Weekly Grid</button>
+          <button type="button" class="view-tab active" data-view="table" role="tab" aria-selected="true"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#table"></use></svg>Table View</button>
+          <button type="button" class="view-tab" data-view="grid" role="tab" aria-selected="false"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#week"></use></svg>Weekly Grid</button>
         </div>
-        <label class="teacher-search">⌕ <input type="search" data-search placeholder="Search subject, teacher, room, section…" aria-label="Search timetable"></label>
+        <label class="teacher-search"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#search"></use></svg><input type="search" data-search placeholder="Search subject, teacher, room, section…" aria-label="Search timetable"></label>
         <select data-filter-programme aria-label="Filter by programme"><option value="">All programmes</option></select>
         <select data-filter-section aria-label="Filter by section"><option value="">All sections</option></select>
         <select data-filter-teacher aria-label="Filter by teacher"><option value="">All teachers</option></select>
@@ -119,9 +120,9 @@
         <footer class="teacher-pagination no-print">
           <span data-page-summary></span>
           <div>
-            <button type="button" data-prev aria-label="Previous page">‹</button>
+            <button type="button" data-prev aria-label="Previous page"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#chevron-left"></use></svg></button>
             <span data-page-number>1</span>
-            <button type="button" data-next aria-label="Next page">›</button>
+            <button type="button" data-next aria-label="Next page"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#chevron-right"></use></svg></button>
           </div>
         </footer>
       </section>
@@ -155,7 +156,7 @@
         <h2 id="editor-title" data-editor-title>Create a timetable</h2>
         <p>Enter the scheduling details below. All fields marked * are required.</p>
       </div>
-      <button type="button" class="dialog-close" data-editor-close aria-label="Close">×</button>
+      <button type="button" class="dialog-close" data-editor-close aria-label="Close"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#close"></use></svg></button>
     </header>
     <form data-timetable-form novalidate>
       <input type="hidden" name="entryId" value="">
@@ -209,7 +210,7 @@
 
       <footer>
         <button type="button" class="text-button" data-editor-cancel>Cancel</button>
-        <button class="primary-button" type="submit" data-save>✓ &nbsp;Save timetable</button>
+        <button class="primary-button" type="submit" data-save><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#check"></use></svg>Save timetable</button>
       </footer>
     </form>
   </section>
@@ -241,7 +242,7 @@
         <h2 id="perm-title">Teacher Rescheduling Permissions</h2>
         <p>Control which faculty members are explicitly authorized to reschedule their assigned classes.</p>
       </div>
-      <button type="button" class="dialog-close" data-permissions-close aria-label="Close dialog">×</button>
+      <button type="button" class="dialog-close" data-permissions-close aria-label="Close dialog"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#close"></use></svg></button>
     </header>
     <div style="padding:16px 24px;max-height:400px;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
@@ -273,7 +274,7 @@
         <h2 id="logs-title">Timetable Change History</h2>
         <p>Complete historical log of class reschedules, previous/new schedules, and notifications.</p>
       </div>
-      <button type="button" class="dialog-close" data-logs-close aria-label="Close dialog">×</button>
+      <button type="button" class="dialog-close" data-logs-close aria-label="Close dialog"><svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#close"></use></svg></button>
     </header>
     <div style="padding:16px 24px;max-height:450px;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:12px;">

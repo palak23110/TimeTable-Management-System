@@ -4,6 +4,7 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => document.querySelectorAll(selector);
   const esc = (text) => String(text ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const icon = (name) => `<svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#${name}"></use></svg>`;
 
   const state = {
     data: null,
@@ -145,9 +146,9 @@
           <td class="matrix-cell booked-slot student-booked">
             <div class="matrix-card">
               <strong class="matrix-subject">${esc(item.subjectName)}</strong>
-              <div class="matrix-teacher">👨‍🏫 ${esc(item.teacherName)}</div>
+              <div class="matrix-teacher">${icon('teacher')} ${esc(item.teacherName)}</div>
               <div class="matrix-meta">
-                <span class="matrix-room">▥ ${esc(item.roomNumber)}</span>
+                <span class="matrix-room">${icon('building')} ${esc(item.roomNumber)}</span>
               </div>
               <small class="matrix-building">${esc(item.buildingName)}</small>
             </div>

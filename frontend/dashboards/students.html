@@ -75,22 +75,24 @@
       <section class="teacher-drawer student-drawer" role="dialog" aria-modal="true" aria-labelledby="student-modal-title">
         <header><div><span class="eyebrow">New record</span><h2 id="student-modal-title">Add new student</h2><p>Enter the required details below. Fields marked * are required.</p></div><button type="button" data-close-student aria-label="Close">×</button></header>
         <form data-student-form>
-          <div class="drawer-fields student-fields">
-            <label>Student name *<input name="name" maxlength="160" required autocomplete="name" placeholder="Enter full name"></label>
-            <label>Student ID *<input name="studentId" maxlength="32" required placeholder="STU-00000"></label>
-            <label>Email address *<input name="email" type="email" maxlength="254" required autocomplete="email" placeholder="name@bmu.edu"></label>
-            <label>Contact number *<input name="contactNumber" type="tel" maxlength="32" required autocomplete="tel" placeholder="+1 555 0000"></label>
-            <label>Degree / programme *<select name="programmeId" data-form-programme required><option value="">Select programme</option></select></label>
-            <label data-branch-field hidden>Branch / major *<select name="branchOptionId" data-form-branch disabled><option value="">Select branch / major</option></select></label>
-            <label data-specialisation-field hidden>Specialisation (optional)<select name="specialisationOptionId" data-form-specialisation disabled><option value="">No specialisation</option></select></label>
-            <label>Enrolled year *<input name="enrolledYear" data-enrolled-year type="number" min="2000" max="2200" required placeholder="2024"></label>
-            <label>Expected graduation year *<select name="expectedGraduationYear" data-graduation-year required disabled><option value="">Select programme and enrolled year</option></select></label>
-            <label>Current semester<input data-current-semester value="Select enrolment year to calculate" readonly></label>
-            <label>Section *<select name="sectionId" data-form-section required disabled><option value="">Select programme first</option></select></label>
+          <div class="drawer-form-body">
+            <div class="drawer-fields student-fields">
+              <label>Student name *<input name="name" maxlength="160" required autocomplete="name" placeholder="Enter full name"></label>
+              <label>Student ID *<input name="studentId" maxlength="32" required placeholder="STU-00000"></label>
+              <label>Email address *<input name="email" type="email" maxlength="254" required autocomplete="email" placeholder="name@bmu.edu"></label>
+              <label>Contact number *<input name="contactNumber" type="tel" maxlength="32" required autocomplete="tel" placeholder="+1 555 0000"></label>
+              <label>Degree / programme *<select name="programmeId" data-form-programme required><option value="">Select programme</option></select></label>
+              <label data-branch-field hidden>Branch / major *<select name="branchOptionId" data-form-branch disabled><option value="">Select branch / major</option></select></label>
+              <label data-specialisation-field hidden>Specialisation (optional)<select name="specialisationOptionId" data-form-specialisation disabled><option value="">No specialisation</option></select></label>
+              <label>Enrolled year *<input name="enrolledYear" data-enrolled-year type="number" min="2000" max="2200" required placeholder="2024"></label>
+              <label>Expected graduation year *<select name="expectedGraduationYear" data-graduation-year required disabled><option value="">Select programme and enrolled year</option></select></label>
+              <label>Current semester<input data-current-semester value="Select enrolment year to calculate" readonly></label>
+              <label>Section *<select name="sectionId" data-form-section required disabled><option value="">Select programme first</option></select></label>
+            </div>
+            <p class="student-calendar-note" data-calendar-note>Semester is calculated from the configured active academic year and term.</p>
+            <p class="invite-note">Student invitations and login credentials are not part of this phase. Existing student accounts are linked by matching email.</p>
+            <p class="form-error" data-student-error role="alert"></p>
           </div>
-          <p class="student-calendar-note" data-calendar-note>Semester is calculated from the configured active academic year and term.</p>
-          <p class="invite-note">Student invitations and login credentials are not part of this phase. Existing student accounts are linked by matching email.</p>
-          <p class="form-error" data-student-error role="alert"></p>
           <footer><button type="button" class="secondary-button" data-close-student>Cancel</button><button class="primary-button" type="submit">✓ &nbsp;Save record</button></footer>
         </form>
       </section>

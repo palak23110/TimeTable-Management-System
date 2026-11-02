@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/admin-dashboard.css">
   <script src="/js/dashboard.js" defer></script>
+  <script src="/js/admin-dashboard.js" defer></script>
 </head>
 <body class="admin-dashboard">
   <div class="admin-shell">
@@ -61,35 +62,35 @@
         <section class="stats-grid" aria-label="Dashboard statistics">
           <article class="stat-card">
             <span class="stat-icon lavender"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>
-            <div><h2>Total teachers</h2><strong>48</strong><small>+3 this semester</small></div>
+            <div><h2>Total teachers</h2><strong data-dashboard-stat="teachers">—</strong><small data-dashboard-support="teachers">Loading statistics…</small></div>
           </article>
           <article class="stat-card">
             <span class="stat-icon blue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.8 20c.4-3.6 2.4-5.5 6.2-5.5s5.8 1.9 6.2 5.5M16 5a3.5 3.5 0 0 1 0 6.5M17 14.5c2.5.6 3.9 2.4 4.2 5.5"/></svg></span>
-            <div><h2>Total students</h2><strong>1,284</strong><small>12 active programs</small></div>
+            <div><h2>Total students</h2><strong data-dashboard-stat="students">—</strong><small data-dashboard-support="students">Loading statistics…</small></div>
           </article>
           <article class="stat-card">
             <span class="stat-icon green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 8 9-5 9 5-9 5-9-5Z"/><path d="M7 11v5c2.8 2.4 7.2 2.4 10 0v-5M21 8v7"/></svg></span>
-            <div><h2>Classes &amp; sections</h2><strong>36</strong><small>Across 6 semesters</small></div>
+            <div><h2>Classes &amp; sections</h2><strong data-dashboard-stat="sections">—</strong><small data-dashboard-support="sections">Loading statistics…</small></div>
           </article>
           <article class="stat-card">
             <span class="stat-icon peach"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></svg></span>
-            <div><h2>Subjects</h2><strong>94</strong><small>82 assigned</small></div>
+            <div><h2>Subjects</h2><strong data-dashboard-stat="subjects">—</strong><small data-dashboard-support="subjects">Loading statistics…</small></div>
           </article>
           <article class="stat-card">
             <span class="stat-icon pink"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 4V2m10 2V2M3 9h18M7 13h3v4H7zM14 13h3v4h-3z"/></svg></span>
-            <div><h2>Rooms &amp; labs</h2><strong>28</strong><small>24 available today</small></div>
+            <div><h2>Rooms &amp; labs</h2><strong data-dashboard-stat="rooms">—</strong><small data-dashboard-support="rooms">Loading statistics…</small></div>
           </article>
           <article class="stat-card">
             <span class="stat-icon blue"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 2v4m10-4v4M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg></span>
-            <div><h2>Scheduled classes</h2><strong>312</strong><small>This academic week</small></div>
+            <div><h2>Scheduled classes</h2><strong data-dashboard-stat="scheduledClasses">—</strong><small data-dashboard-support="scheduledClasses">Loading statistics…</small></div>
           </article>
           <article class="stat-card">
             <span class="stat-icon amber"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4m0 3h.01"/></svg></span>
-            <div><h2>Pending conflicts</h2><strong>4</strong><small>2 high priority</small></div>
+            <div><h2>Pending conflicts</h2><strong data-dashboard-stat="conflicts">—</strong><small data-dashboard-support="conflicts">Loading statistics…</small></div>
           </article>
           <article class="stat-card">
             <span class="stat-icon green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg></span>
-            <div><h2>Schedule health</h2><strong>94%</strong><small>+2.4% from last week</small></div>
+            <div><h2>Schedule health</h2><strong data-dashboard-stat="scheduleHealth">—</strong><small data-dashboard-support="scheduleHealth">Loading statistics…</small></div>
           </article>
         </section>
 
@@ -101,7 +102,7 @@
               <a class="quick-action" href="/admin/students"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.8 20c.4-3.6 2.4-5.5 6.2-5.5s5.8 1.9 6.2 5.5M16 5a3.5 3.5 0 0 1 0 6.5M17 14.5c2.5.6 3.9 2.4 4.2 5.5"/></svg><span>Add student</span><span class="action-arrow">→</span></a>
               <a class="quick-action" href="/admin/subjects"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></svg><span>Add subject</span><span class="action-arrow">→</span></a>
               <a class="quick-action" href="/admin/rooms"><span>▥</span><span>Add room</span><span class="action-arrow">→</span></a>
-              <a class="quick-action" href="/admin/timetable"><span>📅</span><span>Timetable</span><span class="action-arrow">→</span></a>
+              <a class="quick-action" href="/admin/timetable"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 2v4m10-4v4M3 9h18M8 13h3m-3 4h3m3-4h2"/></svg><span>Timetable</span><span class="action-arrow">→</span></a>
               <a class="quick-action" href="/admin/time-slots"><span>◷</span><span>Working hours</span><span class="action-arrow">→</span></a>
             </div>
           </section>

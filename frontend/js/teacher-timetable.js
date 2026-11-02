@@ -3,6 +3,7 @@
 (function () {
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const icon = (name) => `<svg class="timetable-icon" aria-hidden="true"><use href="/css/timetable-icons.svg#${name}"></use></svg>`;
 
   const state = {
     view: 'grid',
@@ -153,7 +154,7 @@
               <small class="matrix-building">${esc(item.buildingName)}</small>
               ${canReschedule ? `
                 <div class="no-print" style="margin-top:6px;text-align:right">
-                  <button type="button" class="text-button" data-reschedule-btn="${item.id}" style="font-size:11px;padding:2px 6px">↻ Reschedule</button>
+                  <button type="button" class="text-button" data-reschedule-btn="${item.id}" style="font-size:11px;padding:2px 6px">${icon('refresh')}Reschedule</button>
                 </div>
               ` : ''}
             </div>
@@ -209,7 +210,7 @@
         </td>
         <td class="no-print">
           ${canReschedule ? `
-            <button type="button" class="secondary-button" data-reschedule-btn="${e.id}" style="font-size:12px;padding:4px 8px">↻ Reschedule</button>
+            <button type="button" class="secondary-button" data-reschedule-btn="${e.id}" style="font-size:12px;padding:4px 8px">${icon('refresh')}Reschedule</button>
           ` : `
             <span class="view-pill" style="font-size:11px;opacity:0.6" title="Teacher rescheduling permission not granted by administrator">Not permitted</span>
           `}

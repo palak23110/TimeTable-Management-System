@@ -353,7 +353,14 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    overflow: hidden;
+}
+.teacher-drawer .drawer-form-body {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 12px;
 }
 .drawer-fields {
     padding: 25px 30px;
@@ -422,7 +429,7 @@
     font-size: 12px;
 }
 .teacher-drawer form footer {
-    margin-top: auto;
+    flex: 0 0 auto;
     border-top: 1px solid #e2e6ed;
     background: #fbfcfe;
     padding: 16px 20px;
